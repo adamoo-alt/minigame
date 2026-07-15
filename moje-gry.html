@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moje gry — Minigry Rodzinne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root{
+    --bg:#EEF1F2; --surface:#FFFFFF; --ink:#10262B;
+    --primary:#0F3D3E; --primary-light:#155C56;
+    --accent:#E8A33D; --accent-2:#5B2A86;
+    --border:#DDE3E2; --muted:#5B6E6C; --danger:#C0392B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--bg);
+    font-family:'Inter',system-ui,sans-serif; color:var(--ink);
+    display:flex; flex-direction:column; align-items:center; padding:24px 20px 80px;
+  }
+  .wrap{ width:100%; max-width:760px; }
+  .back-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+  .back{ font-size:13px; color:var(--muted); text-decoration:none; }
+  .back:hover{ color:var(--primary); }
+  .add-link{
+    font-size:13px; font-weight:700; color:#fff; background:var(--primary);
+    text-decoration:none; padding:8px 16px; border-radius:999px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase;
+    font-size:12px; color:var(--primary); background:rgba(15,61,62,.08);
+    padding:6px 14px; border-radius:999px; margin-bottom:18px; font-weight:600; display:inline-block;
+  }
+  h1{ font-family:'Fraunces',serif; font-weight:700; font-size:clamp(26px,5vw,36px); margin:0 0 8px; }
+  p.sub{ color:var(--muted); margin:0 0 30px; line-height:1.5; }
+
+  .gate, .empty{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:30px; text-align:center; color:var(--muted);
+  }
+
+  .list{ display:flex; flex-direction:column; gap:14px; }
+  .item{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:18px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .item .icon{ font-size:28px; width:46px; text-align:center; }
+  .item .info{ flex:1; min-width:180px; }
+  .item h2{ font-family:'Fraunces',serif; font-size:17px; margin:0 0 3px; }
+  .item p{ margin:0; font-size:12.5px; color:var(--muted); }
+  .item .meta{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); margin-top:4px; }
+  .status-badge{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:.05em; padding:3px 9px; border-radius:999px; font-weight:600;
+  }
+  .status-badge.published{ color:var(--accent); background:rgba(232,163,61,.14); }
+  .status-badge.pending{ color:var(--accent-2); background:rgba(91,42,134,.10); }
+  .actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .actions a, .actions button{
+    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; text-decoration:none;
+    padding:8px 13px; border-radius:999px; border:1px solid var(--border); cursor:pointer;
+    background:var(--surface); color:var(--ink);
+  }
+  .actions a.edit{ color:var(--primary); border-color:var(--primary); }
+  .actions button.delete{ color:var(--danger); border-color:var(--danger); }
+  .actions button.download{ color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="back-row">
+    <a class="back" href="index.html">&larr; Wróć do menu</a>
+    <a class="add-link" href="dodaj.html">➕ Dodaj nową grę</a>
+  </div>
+  <div class="eyebrow">Twój profil twórcy</div>
+  <h1>Moje gry</h1>
+  <p class="sub">Wszystkie gry, które opublikowałeś. Możesz je edytować, pobrać kod jako plik .html albo usunąć.</p>
+
+  <div id="gate" class="gate">Sprawdzam logowanie…</div>
+  <div id="list" class="list" style="display:none;"></div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://oesvwvqkzuyxawowgffx.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_l1IZEgjZq3s0uGrKMjyrSg_-OG1xUTL";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const gate = document.getElementById('gate');
+  const list = document.getElementById('list');
+  let currentUser = null;
+
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session){
+      currentUser = session.user;
+      gate.style.display = 'none';
+      list.style.display = 'flex';
+      loadMyGames();
+    } else {
+      gate.innerHTML = '🔒 Musisz być zalogowany, żeby zobaczyć swoje gry. <a href="index.html">Zaloguj się na stronie głównej</a>, a potem wróć tutaj.';
+    }
+  });
+
+  async function loadMyGames(){
+    const { data, error } = await sb
+      .from('games')
+      .select('id, title, description, icon, status, plays, created_at')
+      .eq('author_id', currentUser.id)
+      .order('created_at', { ascending: false });
+
+    if (error){
+      list.innerHTML = `<div class="empty">Nie udało się wczytać Twoich gier.</div>`;
+      return;
+    }
+    if (!data || data.length === 0){
+      list.innerHTML = `<div class="empty">Nie masz jeszcze żadnej opublikowanej gry. <a href="dodaj.html">Dodaj pierwszą ➕</a></div>`;
+      return;
+    }
+
+    list.innerHTML = data.map(game => `
+      <div class="item" data-id="${game.id}">
+        <div class="icon">${game.icon || '🎮'}</div>
+        <div class="info">
+          <span class="status-badge ${game.status === 'published' ? 'published' : 'pending'}">${game.status === 'published' ? 'Opublikowana' : game.status}</span>
+          <h2>${escapeHtml(game.title)}</h2>
+          <p>${escapeHtml(game.description || '')}</p>
+          <div class="meta">👥 ${(game.plays || 0).toLocaleString('pl-PL')} zagrań</div>
+        </div>
+        <div class="actions">
+          <a class="edit" href="dodaj.html?id=${game.id}">✏️ Edytuj</a>
+          <button class="download" data-action="download" data-id="${game.id}">⬇️ Pobierz .html</button>
+          <button class="delete" data-action="delete" data-id="${game.id}">🗑️ Usuń</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  list.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+
+    if (btn.dataset.action === 'delete'){
+      if (!confirm('Na pewno usunąć tę grę? Tej operacji nie da się cofnąć.')) return;
+      btn.disabled = true;
+      const { error } = await sb.from('games').delete().eq('id', id);
+      if (error){
+        alert('Błąd usuwania: ' + error.message);
+        btn.disabled = false;
+        return;
+      }
+      loadMyGames();
+    }
+
+    if (btn.dataset.action === 'download'){
+      btn.disabled = true;
+      btn.textContent = '⬇️ Pobieram…';
+      const { data, error } = await sb.from('games').select('title, code').eq('id', id).single();
+      btn.disabled = false;
+      btn.textContent = '⬇️ Pobierz .html';
+      if (error || !data){
+        alert('Nie udało się pobrać kodu tej gry.');
+        return;
+      }
+      const slug = (data.title || 'moja-gra')
+        .toLowerCase()
+        .replace(/[^a-z0-9ąćęłńóśźż\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .slice(0, 50) || 'moja-gra';
+      const blob = new Blob([data.code || ''], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${slug}.html`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+  });
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+</script>
+</body>
+</html>
