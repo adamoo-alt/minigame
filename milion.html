@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pierwszy Milion</title>
+<style>
+:root{
+  --bg:#0F1B14; --surface:#16261C; --surface2:#1C2E22; --ink:#F1F7F0; --gold:#F2C14E;
+  --good:#5FCB7A; --muted:#8AA093; --border:#243A2B; --purple:#5B3A9C; --red:#E77;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:
+  radial-gradient(1200px 600px at 50% -10%, #1B3324 0%, var(--bg) 60%);
+  color:var(--ink);padding-bottom:78px;min-height:100vh;}
+
+.top{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#1B3324,#0F1B14);
+  padding:16px 16px 12px;text-align:center;border-bottom:1px solid var(--border);
+  backdrop-filter:blur(6px);}
+.toprow{display:flex;align-items:center;justify-content:center;gap:10px;position:relative;}
+.money{font-size:32px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.3px;}
+.gempill{position:absolute;right:0;top:2px;background:rgba(91,58,156,.35);border:1px solid #6F4BC4;
+  color:#D9C8FF;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;}
+.rate{font-size:12.5px;color:var(--good);margin-top:4px;}
+.progwrap{height:5px;background:var(--surface);border-radius:999px;margin-top:10px;overflow:hidden;}
+.progbar{height:100%;background:linear-gradient(90deg,var(--purple),#8A6BD9);transition:width .4s;}
+
+.wrap{max-width:520px;margin:0 auto;padding:14px;position:relative;}
+
+.clickbtn{width:100%;padding:20px;font-size:17px;font-weight:800;border:none;border-radius:18px;
+  background:linear-gradient(160deg,#FFDA7A,var(--gold));color:#3A2705;margin:6px 0 14px;
+  box-shadow:0 8px 20px rgba(242,193,78,.28), inset 0 1px 0 rgba(255,255,255,.4);}
+.clickbtn:active{transform:scale(.97);}
+
+#floaterZone{position:relative;height:0;}
+.floater{position:absolute;bottom:10px;font-weight:800;color:var(--gold);font-size:15px;
+  animation:floatUp .9s ease-out forwards;pointer-events:none;white-space:nowrap;transform:translateX(-50%);}
+.floater.crit{color:#FF8A5C;font-size:18px;}
+@keyframes floatUp{
+  0%{opacity:1;bottom:6px;}
+  100%{opacity:0;bottom:70px;}
+}
+
+.banner{background:var(--good);color:#0A2410;padding:12px 14px;border-radius:12px;margin-bottom:12px;
+  font-size:13.5px;font-weight:600;text-align:center;animation:pop .25s ease-out;}
+@keyframes pop{from{transform:scale(.92);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+h3{font-size:11.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 4px 8px;}
+.empty{color:var(--muted);font-size:13px;padding:8px 4px;}
+
+.gen{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:11px 12px;margin-bottom:8px;transition:opacity .2s;}
+.gen.mini{background:transparent;border-style:dashed;padding:8px 10px;}
+.gen.lock{opacity:.42;}
+.gen.owned{border-color:var(--good);background:rgba(95,203,122,.08);}
+.ge{font-size:24px;width:32px;text-align:center;flex-shrink:0;}
+.gi{flex:1;font-size:12.5px;min-width:0;}
+.gi b{font-size:13.5px;}
+.gs{color:var(--muted);font-size:11px;}
+.gc{font-weight:700;color:var(--gold);font-size:12.5px;white-space:nowrap;}
+.gen.owned .gc{color:var(--good);}
+
+.prestige{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;}
+.prestige button{width:100%;padding:13px;border:none;border-radius:12px;background:var(--purple);color:#fff;
+  font-weight:700;font-size:13.5px;}
+.prestige button:disabled{opacity:.35;}
+.prestige p{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.5;}
+
+.ach{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.b{font-size:10.5px;background:rgba(242,193,78,.15);color:var(--gold);padding:4px 9px;border-radius:999px;font-weight:700;}
+.b.blocked{background:rgba(138,160,147,.12);color:var(--muted);}
+
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;}
+.stat b{display:block;font-size:15px;color:var(--gold);}
+.stat span{font-size:10.5px;color:var(--muted);}
+
+.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:#0D1712;border-top:1px solid var(--border);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:10;}
+.tabbtn{flex:1;background:none;border:none;color:var(--muted);display:flex;flex-direction:column;
+  align-items:center;gap:2px;padding:6px 2px;border-radius:10px;font-size:9.5px;}
+.tabbtn span{font-size:19px;}
+.tabbtn.active{color:var(--gold);background:rgba(242,193,78,.08);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const GEN = [
+ {n:'Stoisko z lemoniadą',        e:'🍋', c:10,          r:0.1},
+ {n:'Roznoszenie gazet',          e:'📰', c:100,         r:1},
+ {n:'Sklepik osiedlowy',          e:'🏪', c:1200,        r:8},
+ {n:'Kawiarnia',                  e:'☕', c:13000,       r:47},
+ {n:'Mała fabryka',               e:'🏭', c:140000,      r:260},
+ {n:'Startup',                    e:'🚀', c:1700000,     r:1400},
+ {n:'Bank',                       e:'🏦', c:20000000,    r:7800},
+ {n:'Globalny koncern',          e:'🌍', c:330000000,    r:44000},
+ {n:'Fundusz hedgingowy',        e:'🦈', c:4e9,          r:250000},
+ {n:'Sieć fintechowa',           e:'📲', c:5e10,         r:1400000},
+ {n:'Prywatna firma kosmiczna',  e:'🛰️', c:6e11,         r:8000000},
+ {n:'Kopalnia kryptowalut',      e:'⛏️', c:7.2e12,       r:45000000},
+ {n:'Bank centralny',            e:'🏛️', c:8.6e13,       r:250000000},
+ {n:'Konsorcjum surowcowe',      e:'⚙️', c:1.04e15,      r:1400000000},
+ {n:'Kolonia na Marsie',         e:'🔴', c:1.24e16,      r:8000000000},
+ {n:'Imperium multiwersalne',    e:'🌌', c:1.49e17,      r:45000000000},
+];
+
+const CLICK_UPG = [
+ {n:'Robocze rękawiczki',        e:'🧤', c:50,       d:'Ręczny zarobek +1 zł', type:'add', v:1},
+ {n:'Mechaniczna klawiatura',    e:'⌨️', c:500,      d:'Ręczny zarobek +5 zł', type:'add', v:5},
+ {n:'Boty klikające',            e:'🤖', c:5000,     d:'Ręczny zarobek x2', type:'mult', v:2},
+ {n:'Sztuczna inteligencja',    e:'🧠', c:50000,    d:'Ręczny zarobek +50 zł', type:'add', v:50},
+ {n:'Neuroprzyspieszacz',        e:'⚡', c:500000,   d:'Ręczny zarobek x2', type:'mult', v:2},
+ {n:'Kwantowy stylus',           e:'✒️', c:5000000,  d:'Ręczny zarobek +500 zł', type:'add', v:500},
+ {n:'Synchronizacja rynkowa',   e:'📡', c:5e7,       d:'Ręczny zarobek +1% dochodu/s', type:'pctrate', v:0.01},
+ {n:'Nanoboty klikające',        e:'🔬', c:5e8,       d:'Ręczny zarobek x3', type:'mult', v:3},
+ {n:'Świadomość rynkowa AI',    e:'👁️', c:5e9,       d:'Ręczny zarobek x2', type:'mult', v:2},
+ {n:'Transcendencja finansowa', e:'✨', c:5e10,      d:'Ręczny zarobek +100 000 zł', type:'add', v:100000},
+];
+
+const GEM_CONSUM = [
+ {id:'boostIncome', n:'Podwójny dochód', e:'📈', c:15, d:'x2 dochód pasywny na 10 minut'},
+ {id:'boostClick',  n:'Podwójne kliknięcia', e:'👆', c:10, d:'x2 zarobek ręczny na 10 minut'},
+ {id:'cashInject',  n:'Zastrzyk gotówki', e:'💵', c:25, d:'Natychmiast +5 minut dochodu'},
+];
+
+const GEM_PERM = [
+ {id:'offline24', n:'Rozszerzony offline', e:'🌙', c:40, d:'Offline liczony do 24h zamiast 8h'},
+ {id:'autoClick', n:'Automatyczny klik', e:'🦾', c:60, d:'Automatyczny klik raz na sekundę'},
+ {id:'luckyCharm', n:'Szczęśliwy talizman', e:'🍀', c:100, d:'+10% szansy na trafienie krytyczne'},
+];
+
+const ACH = [
+ {id:'a1', t:'🎉 Pierwsze 100 zł', f:s=>s.total>=100, gem:2},
+ {id:'a2', t:'💰 Pierwszy tysiąc', f:s=>s.total>=1000, gem:2},
+ {id:'a3', t:'📈 Milion zarobiony', f:s=>s.total>=1e6, gem:5},
+ {id:'a4', t:'💎 Miliarder', f:s=>s.total>=1e9, gem:5},
+ {id:'a5', t:'🏆 Bilioner', f:s=>s.total>=1e12, gem:8},
+ {id:'a6', t:'🌌 Kwadryliard zarobiony', f:s=>s.total>=1e15, gem:10},
+ {id:'a7', t:'🔄 Pierwszy prestiż', f:s=>s.prestige>=1, gem:5},
+ {id:'a8', t:'👑 10 poziomów prestiżu', f:s=>s.prestige>=10, gem:10},
+ {id:'a9', t:'👑👑 50 poziomów prestiżu', f:s=>s.prestige>=50, gem:20},
+ {id:'a10', t:'🏭 5x każdy generator', f:s=>s.owned.every(o=>o>=5), gem:8},
+ {id:'a11', t:'🏭 25x każdy generator', f:s=>s.owned.every(o=>o>=25), gem:15},
+ {id:'a12', t:'👆 1000 kliknięć', f:s=>s.clicks>=1000, gem:5},
+ {id:'a13', t:'👆 10 000 kliknięć', f:s=>s.clicks>=10000, gem:10},
+ {id:'a14', t:'💎 100 gemów zebranych', f:s=>s.gemsTotal>=100, gem:10},
+ {id:'a15', t:'🛒 Wszystkie ulepszenia klikania', f:s=>s.clickUpg.every(Boolean), gem:15},
+];
+
+const KEY='idleMillionState_v2';
+const OLD_KEY='idleMillionState_v1';
+
+function fresh(){
+  return {
+    money:0, total:0, owned:GEN.map(()=>0), prestige:0, ach:[],
+    gems:0, gemsTotal:0,
+    clickUpg:CLICK_UPG.map(()=>false), gemPerm:GEM_PERM.map(()=>false),
+    boostIncomeUntil:0, boostClickUntil:0,
+    clicks:0, firstPlayed:Date.now(), last:Date.now()
+  };
+}
+
+function load(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(KEY));
+    if(raw) return migrate(raw);
+    const old = JSON.parse(localStorage.getItem(OLD_KEY));
+    if(old) return migrate(old);
+    return null;
+  }catch(e){ return null; }
+}
+function migrate(s){
+  const f = fresh();
+  Object.assign(f, s);
+  if(!Array.isArray(f.owned) || f.owned.length < GEN.length){
+    const o = f.owned||[];
+    f.owned = GEN.map((_,i)=>o[i]||0);
+  }
+  if(!Array.isArray(f.clickUpg) || f.clickUpg.length < CLICK_UPG.length){
+    const u = f.clickUpg||[];
+    f.clickUpg = CLICK_UPG.map((_,i)=>!!u[i]);
+  }
+  if(!Array.isArray(f.gemPerm) || f.gemPerm.length < GEM_PERM.length){
+    const g = f.gemPerm||[];
+    f.gemPerm = GEM_PERM.map((_,i)=>!!g[i]);
+  }
+  if(typeof f.gems !== 'number') f.gems = 0;
+  if(typeof f.gemsTotal !== 'number') f.gemsTotal = f.gems;
+  if(typeof f.clicks !== 'number') f.clicks = 0;
+  if(typeof f.firstPlayed !== 'number') f.firstPlayed = Date.now();
+  return f;
+}
+
+let S = load() || fresh();
+let banner = null;
+let currentTab = 'main';
+
+function save(){ S.last = Date.now(); localStorage.setItem(KEY, JSON.stringify(S)); }
+
+const UNITS = ['','K','M','mld','bln','Qd','Qn','Sx','Sp','Oc','No','Dc','Ud','Dd'];
+function fmt(n){
+  if(n < 1000) return n.toFixed(n<10?2:1);
+  let i=0;
+  while(n>=1000 && i<UNITS.length-1){ n/=1000; i++; }
+  return n.toFixed(2)+UNITS[i];
+}
+
+function hasGemPerm(id){ const i=GEM_PERM.findIndex(g=>g.id===id); return i>=0 && S.gemPerm[i]; }
+function critChance(){ return 0.02 + (hasGemPerm('luckyCharm')?0.10:0); }
+function offlineCapSeconds(){ return (hasGemPerm('offline24')?24:8) * 3600; }
+function autoClickPerSec(){ return hasGemPerm('autoClick') ? 1 : 0; }
+
+function mult(){ return 1 + S.prestige*0.02; }
+function incomeBoostActive(){ return Date.now() < S.boostIncomeUntil; }
+function clickBoostActive(){ return Date.now() < S.boostClickUntil; }
+
+function rate(){
+  let r = GEN.reduce((s,g,i)=> s + g.r*S.owned[i], 0) * mult();
+  if(incomeBoostActive()) r *= 2;
+  return r;
+}
+function clickPower(){
+  let addTotal = 0;
+  let multTotal = 1;
+  CLICK_UPG.forEach((u,i)=>{
+    if(!S.clickUpg[i]) return;
+    if(u.type==='add') addTotal += u.v;
+    else if(u.type==='mult') multTotal *= u.v;
+    else if(u.type==='pctrate') addTotal += rate()*u.v;
+  });
+  let power = (1+addTotal) * multTotal * mult();
+  if(clickBoostActive()) power *= 2;
+  return power;
+}
+
+function cost(i){ return Math.ceil(GEN[i].c * Math.pow(1.15, S.owned[i])); }
+
+function checkAch(){
+  let gained = [];
+  ACH.forEach(a=>{
+    if(!S.ach.includes(a.id) && a.f(S)){
+      S.ach.push(a.id);
+      S.gems += a.gem; S.gemsTotal += a.gem;
+      gained.push(a);
+    }
+  });
+  if(gained.length){
+    banner = `Odznaka odblokowana: ${gained.map(g=>g.t).join(', ')} (+${gained.reduce((s,g)=>s+g.gem,0)} 💎)`;
+  }
+}
+
+function tick(dt){
+  const gain = rate()*dt;
+  S.money += gain; S.total += gain;
+  checkAch();
+}
+
+function doClick(){
+  let g = clickPower();
+  let crit = Math.random() < critChance();
+  if(crit) g *= 10;
+  S.money += g; S.total += g; S.clicks += 1;
+  checkAch(); save(); render();
+  return {gain:g, crit:crit};
+}
+
+function buyGen(i){
+  const c = cost(i);
+  if(S.money < c) return;
+  S.money -= c; S.owned[i] += 1;
+  save(); render();
+}
+
+function buyClickUpg(i){
+  if(S.clickUpg[i]) return;
+  const u = CLICK_UPG[i];
+  if(S.money < u.c) return;
+  S.money -= u.c; S.clickUpg[i] = true;
+  checkAch(); save(); render();
+}
+
+function buyGemConsum(id){
+  const item = GEM_CONSUM.find(g=>g.id===id);
+  if(!item || S.gems < item.c) return;
+  S.gems -= item.c;
+  if(id==='boostIncome') S.boostIncomeUntil = Math.max(S.boostIncomeUntil, Date.now()) + 600*1000;
+  if(id==='boostClick') S.boostClickUntil = Math.max(S.boostClickUntil, Date.now()) + 600*1000;
+  if(id==='cashInject'){ const g = rate()*300; S.money += g; S.total += g; }
+  save(); render();
+}
+
+function buyGemPerm(i){
+  const item = GEM_PERM[i];
+  if(S.gemPerm[i] || S.gems < item.c) return;
+  S.gems -= item.c; S.gemPerm[i] = true;
+  save(); render();
+}
+
+function canPrestige(){ return S.total >= 1e6; }
+function prestigeGain(){ return Math.floor(Math.sqrt(S.total/1e6)); }
+function doPrestige(){
+  if(!canPrestige()) return;
+  const g = prestigeGain();
+  S.prestige += g;
+  S.gems += 3; S.gemsTotal += 3;
+  S.money = 0; S.owned = GEN.map(()=>0);
+  save(); render();
+}
+function resetGame(){
+  if(!confirm('Na pewno zacząć zupełnie od nowa? Stracisz cały postęp.')) return;
+  localStorage.removeItem(KEY);
+  S = fresh();
+  save(); render();
+}
+
+(function offline(){
+  const dt = Math.min((Date.now()-S.last)/1000, offlineCapSeconds());
+  if(dt > 5){
+    const gain = rate()*dt;
+    tick(dt);
+    banner = `Wróciłeś/aś! Podczas nieobecności zarobiłeś/aś ${fmt(gain)} zł.`;
+  }
+})();
+
+setInterval(()=>{
+  tick(0.5);
+  const ac = autoClickPerSec();
+  if(ac>0){ const g = clickPower()*0.5*ac; S.money+=g; S.total+=g; }
+  render();
+}, 500);
+
+setInterval(()=>{
+  if(Math.random() < 0.35){
+    if(Math.random()<0.5){
+      const g = rate()*(30+Math.random()*90);
+      S.money += g; S.total += g;
+      banner = `Znalazłeś okazję inwestycyjną: +${fmt(g)} zł!`;
+    } else {
+      const g = 1+Math.floor(Math.random()*3);
+      S.gems += g; S.gemsTotal += g;
+      banner = `Anonimowy inwestor przelał Ci ${g} 💎!`;
+    }
+    save(); render();
+  }
+}, 120000);
+
+function fmtTime(sec){
+  sec = Math.max(0, Math.floor(sec));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  if(h>0) return `${h}h ${m}m`;
+  if(m>0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
+function tabBtn(id, emoji, label){
+  return `<button class="tabbtn ${currentTab===id?'active':''}" data-tab="${id}"><span>${emoji}</span><small>${label}</small></button>`;
+}
+
+function renderHeader(){
+  const prog = Math.min(100, (S.total/1e6)*100);
+  return `
+    <div class="top">
+      <div class="toprow">
+        <div class="money">${fmt(S.money)} zł</div>
+        <div class="gempill">💎 ${S.gems}</div>
+      </div>
+      <div class="rate">+${fmt(rate())} zł/s${incomeBoostActive()?' 🔥x2':''}${S.prestige?` · 👑 ${S.prestige} (x${mult().toFixed(2)})`:''}</div>
+      ${!canPrestige() ? `<div class="progwrap"><div class="progbar" style="width:${prog.toFixed(1)}%"></div></div>` : ''}
+    </div>`;
+}
+
+function renderMain(){
+  return `
+    ${banner ? `<div class="banner">🎁 ${banner}</div>` : ''}
+    <button class="clickbtn" id="clickBtn">💰 Zarób ręcznie (+${fmt(clickPower())} zł)${clickBoostActive()?' 🔥':''}</button>
+    <div id="floaterZone"></div>
+    <h3>Szybki podgląd generatorów</h3>
+    ${GEN.map((g,i)=>S.owned[i]>0?`
+      <div class="gen mini">
+        <span class="ge">${g.e}</span>
+        <div class="gi"><b>${g.n}</b><br><span class="gs">x${S.owned[i]} · +${fmt(g.r*S.owned[i]*mult())} zł/s</span></div>
+      </div>`:'').join('') || '<p class="empty">Nie masz jeszcze żadnych generatorów. Przejdź do zakładki Generatory.</p>'}
+  `;
+}
+
+function renderGen(){
+  return `
+    <h3>Generatory dochodu</h3>
+    ${GEN.map((g,i)=>`
+      <div class="gen ${S.money>=cost(i)?'':'lock'}" data-buy="${i}">
+        <span class="ge">${g.e}</span>
+        <div class="gi"><b>${g.n}</b><br><span class="gs">Masz: ${S.owned[i]} · daje +${fmt(g.r*S.owned[i]*mult())} zł/s</span></div>
+        <span class="gc">${fmt(cost(i))} zł</span>
+      </div>`).join('')}
+  `;
+}
+
+function renderUpg(){
+  return `
+    <h3>Ulepszenia ręcznego zarobku</h3>
+    ${CLICK_UPG.map((u,i)=>`
+      <div class="gen ${S.clickUpg[i]?'owned':(S.money>=u.c?'':'lock')}" data-upg="${i}">
+        <span class="ge">${u.e}</span>
+        <div class="gi"><b>${u.n}</b><br><span class="gs">${u.d}</span></div>
+        <span class="gc">${S.clickUpg[i]?'✅':fmt(u.c)+' zł'}</span>
+      </div>`).join('')}
+  `;
+}
+
+function renderGems(){
+  return `
+    <h3>Boosty (zużywalne)</h3>
+    ${GEM_CONSUM.map(item=>`
+      <div class="gen ${S.gems>=item.c?'':'lock'}" data-gemc="${item.id}">
+        <span class="ge">${item.e}</span>
+        <div class="gi"><b>${item.n}</b><br><span class="gs">${item.d}</span></div>
+        <span class="gc">💎 ${item.c}</span>
+      </div>`).join('')}
+    ${incomeBoostActive()?`<p class="empty">🔥 Dochód x2 jeszcze przez ${fmtTime((S.boostIncomeUntil-Date.now())/1000)}</p>`:''}
+    ${clickBoostActive()?`<p class="empty">🔥 Kliknięcia x2 jeszcze przez ${fmtTime((S.boostClickUntil-Date.now())/1000)}</p>`:''}
+    <h3>Ulepszenia stałe</h3>
+    ${GEM_PERM.map((item,i)=>`
+      <div class="gen ${S.gemPerm[i]?'owned':(S.gems>=item.c?'':'lock')}" data-gemp="${i}">
+        <span class="ge">${item.e}</span>
+        <div class="gi"><b>${item.n}</b><br><span class="gs">${item.d}</span></div>
+        <span class="gc">${S.gemPerm[i]?'✅':'💎 '+item.c}</span>
+      </div>`).join('')}
+  `;
+}
+
+function renderPrestige(){
+  return `
+    <div class="prestige">
+      <button id="prestigeBtn" ${canPrestige()?'':'disabled'}>🔄 Zainwestuj od nowa (+${prestigeGain()} poz. prestiżu, +3 💎)</button>
+      <p>Wymaga 1 mln zł łącznie zarobionych. Każdy poziom prestiżu to trwałe +2% do całego dochodu i ręcznego zarobku, na zawsze. Generatory wracają do zera, ale prestiż i gemy zostają.</p>
+    </div>
+    <div class="gen" id="resetBtn" style="justify-content:center;color:#E77;cursor:pointer;margin-top:14px;">🗑️ Zacznij od zera</div>
+  `;
+}
+
+function renderStats(){
+  const playSec = (Date.now()-S.firstPlayed)/1000;
+  return `
+    <h3>Statystyki</h3>
+    <div class="statgrid">
+      <div class="stat"><b>${fmt(S.total)} zł</b><span>łącznie zarobione</span></div>
+      <div class="stat"><b>${S.clicks}</b><span>kliknięć</span></div>
+      <div class="stat"><b>${S.prestige}</b><span>poz. prestiżu</span></div>
+      <div class="stat"><b>${S.gemsTotal}</b><span>gemów zdobytych</span></div>
+      <div class="stat"><b>${fmtTime(playSec)}</b><span>czas gry</span></div>
+      <div class="stat"><b>${(critChance()*100).toFixed(0)}%</b><span>szansa na krytyk</span></div>
+    </div>
+    <h3>Odznaki (${S.ach.length}/${ACH.length})</h3>
+    <div class="ach">${ACH.map(a=>`<span class="b ${S.ach.includes(a.id)?'':'blocked'}">${S.ach.includes(a.id)?a.t:'🔒 ???'}</span>`).join('')}</div>
+  `;
+}
+
+function render(){
+  let body = '';
+  if(currentTab==='main') body = renderMain();
+  else if(currentTab==='gen') body = renderGen();
+  else if(currentTab==='upg') body = renderUpg();
+  else if(currentTab==='gems') body = renderGems();
+  else if(currentTab==='prestige') body = renderPrestige();
+  else if(currentTab==='stats') body = renderStats();
+
+  document.getElementById('app').innerHTML = `
+    ${renderHeader()}
+    <div class="wrap">${body}</div>
+    <div class="tabs">
+      ${tabBtn('main','💰','Główna')}
+      ${tabBtn('gen','🏭','Generatory')}
+      ${tabBtn('upg','🖱️','Ulepszenia')}
+      ${tabBtn('gems','💎','Gemy')}
+      ${tabBtn('prestige','🔄','Prestiż')}
+      ${tabBtn('stats','📊','Statystyki')}
+    </div>
+  `;
+
+  const clickBtnEl = document.getElementById('clickBtn');
+  if(clickBtnEl){
+    clickBtnEl.onclick = ()=>{
+      const res = doClick();
+      spawnFloater(res.gain, res.crit);
+    };
+  }
+  const prestigeBtnEl = document.getElementById('prestigeBtn');
+  if(prestigeBtnEl) prestigeBtnEl.onclick = doPrestige;
+  const resetBtnEl = document.getElementById('resetBtn');
+  if(resetBtnEl) resetBtnEl.onclick = resetGame;
+
+  document.querySelectorAll('[data-buy]').forEach(el=>{ el.onclick = ()=>buyGen(Number(el.dataset.buy)); });
+  document.querySelectorAll('[data-upg]').forEach(el=>{ el.onclick = ()=>buyClickUpg(Number(el.dataset.upg)); });
+  document.querySelectorAll('[data-gemc]').forEach(el=>{ el.onclick = ()=>buyGemConsum(el.dataset.gemc); });
+  document.querySelectorAll('[data-gemp]').forEach(el=>{ el.onclick = ()=>buyGemPerm(Number(el.dataset.gemp)); });
+  document.querySelectorAll('.tabbtn').forEach(el=>{ el.onclick = ()=>{ currentTab = el.dataset.tab; render(); }; });
+
+  if(banner) setTimeout(()=>{ banner=null; }, 6000);
+}
+
+function spawnFloater(amount, crit){
+  const zone = document.getElementById('floaterZone');
+  if(!zone) return;
+  const el = document.createElement('div');
+  el.className = 'floater' + (crit?' crit':'');
+  el.textContent = (crit?'💥 KRYTYK! +':'+') + fmt(amount) + ' zł';
+  el.style.left = (40 + Math.random()*20) + '%';
+  zone.appendChild(el);
+  setTimeout(()=>el.remove(), 900);
+}
+
+render();
+</script>
+</body>
+</html>

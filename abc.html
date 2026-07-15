@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ABC — Czytanie i Pisanie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --board:#22201D; --board2:#2B2925; --chalk:#F5F3ED; --muted:#9C9890;
+  --yellow:#F2D675; --blue:#7EC8E3; --coral:#F08A5D; --mint:#8FD9B6; --border:rgba(245,243,237,.14);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  margin:0; min-height:100vh; background:
+    repeating-linear-gradient(115deg, rgba(255,255,255,.015) 0 2px, transparent 2px 6px),
+    radial-gradient(900px 500px at 50% -5%, var(--board2), var(--board) 70%);
+  color:var(--chalk); font-family:'Inter',system-ui,sans-serif;
+  display:flex; justify-content:center; padding:20px 14px 60px;
+}
+#app{width:100%; max-width:520px;}
+.back{color:var(--muted); font-size:12.5px; text-decoration:none; display:inline-block; margin-bottom:10px;}
+.back:hover{color:var(--chalk);}
+h1{
+  font-family:'Caveat',cursive; font-weight:700; font-size:40px; margin:0 0 2px;
+  letter-spacing:.01em; color:var(--chalk);
+}
+.sub{color:var(--muted); font-size:13px; margin:0 0 18px;}
+
+.tabs{display:flex; gap:8px; margin-bottom:16px;}
+.tabbtn{
+  flex:1; background:transparent; border:1px solid var(--border); color:var(--muted);
+  font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px; padding:10px 6px;
+  border-radius:10px; position:relative;
+}
+.tabbtn.active{ color:var(--tabcolor); border-color:var(--tabcolor); }
+.tabbtn.active::after{
+  content:''; position:absolute; left:14%; right:14%; bottom:-6px; height:3px;
+  background:var(--tabcolor); border-radius:3px; transform:rotate(-1deg);
+}
+
+.board{
+  border:1.5px dashed var(--border); border-radius:16px; padding:22px 18px 20px;
+  background:rgba(255,255,255,.015); min-height:280px;
+}
+.instr{color:var(--muted); font-size:13px; text-align:center; margin:0 0 16px; line-height:1.5;}
+
+.picture{font-size:64px; text-align:center; margin-bottom:18px;}
+.answerRow, .tileRow{display:flex; flex-wrap:wrap; justify-content:center; gap:8px;}
+.answerRow{margin-bottom:16px; min-height:52px;}
+.slot{width:42px; height:42px; border-bottom:2.5px solid var(--border); display:inline-block;}
+.tile{
+  width:42px; height:42px; border-radius:8px; border:1.5px solid var(--border);
+  background:rgba(245,243,237,.06); color:var(--chalk); font-family:'Caveat',cursive;
+  font-weight:700; font-size:24px;
+}
+.tile.filled{ border-color:var(--yellow); color:var(--yellow); background:rgba(242,214,117,.08); }
+
+.wordCard{
+  font-family:'Caveat',cursive; font-weight:700; font-size:42px; text-align:center;
+  color:var(--blue); margin:8px 0 18px; letter-spacing:.03em;
+}
+.wordCard.hidden{ filter:blur(9px); user-select:none; }
+.scrambled{
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:26px; letter-spacing:.14em;
+  text-align:center; color:var(--coral); margin:6px 0 12px;
+}
+.defBox{
+  color:var(--muted); font-size:13px; text-align:center; margin:0 0 18px; line-height:1.5;
+  font-style:italic;
+}
+.btnRow{display:flex; gap:8px; justify-content:center; margin-bottom:16px;}
+.chalkbtn{
+  background:transparent; border:1.5px solid var(--border); color:var(--chalk);
+  font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px; padding:9px 14px; border-radius:10px;
+}
+.chalkbtn.primary{ width:100%; border-color:var(--mint); color:var(--mint); margin-top:10px; padding:12px; font-size:13.5px; }
+.textInput{
+  width:100%; background:rgba(255,255,255,.05); border:1.5px solid var(--border); color:var(--chalk);
+  font-family:'Inter',sans-serif; font-size:16px; padding:12px 14px; border-radius:10px; outline:none;
+}
+.textInput:focus{ border-color:var(--chalk); }
+
+.feedback{
+  margin-top:14px; text-align:center; font-size:13.5px; font-weight:600; padding:9px; border-radius:10px;
+}
+.feedback.ok{ color:#0A2410; background:var(--mint); }
+.feedback.no{ color:var(--chalk); background:rgba(240,138,93,.18); border:1px solid var(--coral); }
+
+.statsbar{
+  margin-top:20px; padding-top:14px; border-top:1px dashed var(--border);
+  display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+}
+.tallywrap{display:flex; gap:8px; min-height:22px;}
+.tallygroup{position:relative; display:inline-flex; margin-right:4px;}
+.tl{width:3px; height:20px; background:var(--tabcolor); display:inline-block; margin-right:3px; border-radius:1px;}
+.tl.diag{position:absolute; left:-15px; top:9px; width:22px; height:3px; transform:rotate(-32deg); background:var(--tabcolor);}
+.tlempty{color:var(--muted); font-size:12px;}
+.statnums{color:var(--muted); font-size:12px;}
+.statnums b{color:var(--chalk); font-size:13px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const MALUCH = [
+ {w:'kot',e:'🐱'},{w:'pies',e:'🐶'},{w:'dom',e:'🏠'},{w:'ryba',e:'🐟'},
+ {w:'ptak',e:'🐦'},{w:'sowa',e:'🦉'},{w:'lew',e:'🦁'},{w:'mis',e:'🧸'},
+ {w:'slonce',e:'☀️'},{w:'kwiat',e:'🌸'},{w:'jablko',e:'🍎'},{w:'auto',e:'🚗'},
+ {w:'balon',e:'🎈'},{w:'gwiazda',e:'⭐'},{w:'motyl',e:'🦋'},{w:'zaba',e:'🐸'},
+ {w:'chmura',e:'☁️'},{w:'drzewo',e:'🌳'},{w:'parasol',e:'☂️'},{w:'lody',e:'🍦'},
+];
+
+const UCZEN = [
+ 'żaba','róża','chleb','wróbel','księżyc','drzewo','jeż','łóżko','ogórek','chmura',
+ 'brzoza','gwiazda','żółw','wiewiórka','choinka','jeżyna','różowy','środa','wróżka','żelazko',
+];
+
+const DOROSLY = [
+ {w:'paradoks', d:'stwierdzenie pozornie sprzeczne, ale prawdziwe'},
+ {w:'frapujący', d:'budzący silne zainteresowanie lub zaskoczenie'},
+ {w:'ambiwalencja', d:'jednoczesne odczuwanie sprzecznych uczuć'},
+ {w:'skrupulatny', d:'bardzo dokładny i sumienny'},
+ {w:'eklektyczny', d:'łączący różne, niepasujące do siebie style'},
+ {w:'pragmatyczny', d:'nastawiony na praktyczne działanie'},
+ {w:'nostalgia', d:'tęsknota za czymś minionym'},
+ {w:'melancholia', d:'smutny, zamyślony nastrój'},
+ {w:'tautologia', d:'powtórzenie tej samej myśli innymi słowami'},
+ {w:'hermetyczny', d:'trudno dostępny lub zrozumiały dla innych'},
+ {w:'pretensjonalny', d:'sztucznie wyszukany, przesadnie ambitny'},
+ {w:'absurdalny', d:'sprzeczny ze zdrowym rozsądkiem'},
+ {w:'dychotomia', d:'podział na dwie wykluczające się części'},
+ {w:'niuans', d:'subtelna, drobna różnica'},
+ {w:'erudycja', d:'rozległa, wszechstronna wiedza'},
+ {w:'koherentny', d:'spójny i logicznie uporządkowany'},
+ {w:'arbitralny', d:'oparty na własnym uznaniu, nie na regułach'},
+ {w:'empatia', d:'zdolność rozumienia uczuć innych osób'},
+ {w:'asertywność', d:'stanowcze wyrażanie zdania z szacunkiem dla innych'},
+ {w:'symbioza', d:'korzystne współistnienie dwóch stron'},
+];
+
+const KEY='abcGameState_v1';
+function fresh(){
+  return {
+    maluch:{best:0, streak:0, solved:0, points:0, last:null},
+    uczen:{best:0, streak:0, solved:0, points:0, last:null},
+    dorosly:{best:0, streak:0, solved:0, points:0, last:null},
+  };
+}
+function load(){ try{ const r=JSON.parse(localStorage.getItem(KEY)); return r||null; }catch(e){ return null; } }
+let S = load() || fresh();
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+
+let currentTab = 'maluch';
+let feedback = null;
+
+let maluchWord = null, maluchTiles = [], maluchAnswer = [];
+let uczenWord = null, uczenRevealed = false;
+let doroslyItem = null, doroslyScrambled = '';
+
+function shuffleArr(a){
+  const arr = a.slice();
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+function pick(arr, avoid){
+  let choice;
+  do{ choice = arr[Math.floor(Math.random()*arr.length)]; } while(arr.length>1 && choice===avoid);
+  return choice;
+}
+
+function newMaluch(){
+  maluchWord = pick(MALUCH, maluchWord);
+  const letters = maluchWord.w.split('').map((ch,i)=>({ch, id:i+'_'+Math.random()}));
+  maluchTiles = shuffleArr(letters);
+  maluchAnswer = [];
+}
+function tapTile(id){
+  const idx = maluchTiles.findIndex(t=>t.id===id);
+  if(idx<0) return;
+  maluchAnswer.push(maluchTiles[idx]);
+  maluchTiles.splice(idx,1);
+  if(maluchAnswer.length === maluchWord.w.length){
+    const built = maluchAnswer.map(t=>t.ch).join('');
+    if(built === maluchWord.w){
+      S.maluch.streak++; S.maluch.solved++; S.maluch.points += 5;
+      S.maluch.best = Math.max(S.maluch.best, S.maluch.streak);
+      feedback = {ok:true, msg:'Super! To jest ' + maluchWord.w};
+      save();
+      setTimeout(()=>{ feedback=null; newMaluch(); render(); }, 1100);
+    } else {
+      S.maluch.streak = 0;
+      feedback = {ok:false, msg:'Spróbuj jeszcze raz'};
+      save();
+      setTimeout(()=>{ feedback=null; maluchTiles = shuffleArr(maluchAnswer.concat(maluchTiles)); maluchAnswer=[]; render(); }, 900);
+    }
+  }
+  render();
+}
+function untapTile(id){
+  const idx = maluchAnswer.findIndex(t=>t.id===id);
+  if(idx<0) return;
+  maluchTiles.push(maluchAnswer[idx]);
+  maluchAnswer.splice(idx,1);
+  render();
+}
+
+function newUczen(){
+  uczenWord = pick(UCZEN, uczenWord);
+  uczenRevealed = false;
+  setTimeout(()=>speak(uczenWord), 300);
+}
+function speak(word){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(word);
+    u.lang = 'pl-PL'; u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function revealUczen(){
+  uczenRevealed = true; render();
+  setTimeout(()=>{ uczenRevealed=false; render(); }, 900 + uczenWord.length*130);
+}
+function checkUczen(){
+  const input = document.getElementById('uczenInput');
+  if(!input) return;
+  const val = input.value.trim();
+  if(val.toLowerCase() === uczenWord.toLowerCase()){
+    S.uczen.streak++; S.uczen.solved++; S.uczen.points += 10;
+    S.uczen.best = Math.max(S.uczen.best, S.uczen.streak);
+    feedback = {ok:true, msg:'Brawo! Poprawnie: ' + uczenWord};
+    save();
+    setTimeout(()=>{ feedback=null; newUczen(); render(); }, 1300);
+  } else {
+    S.uczen.streak = 0;
+    feedback = {ok:false, msg:'Prawidłowo: ' + uczenWord};
+    save();
+    setTimeout(()=>{ feedback=null; newUczen(); render(); }, 1800);
+  }
+  render();
+}
+
+function newDorosly(){
+  doroslyItem = pick(DOROSLY, doroslyItem);
+  let s;
+  do{ s = shuffleArr(doroslyItem.w.split('')).join(''); } while(s === doroslyItem.w);
+  doroslyScrambled = s;
+}
+function checkDorosly(){
+  const input = document.getElementById('doroslyInput');
+  if(!input) return;
+  const val = input.value.trim();
+  if(val.toLowerCase() === doroslyItem.w.toLowerCase()){
+    S.dorosly.streak++; S.dorosly.solved++; S.dorosly.points += 15;
+    S.dorosly.best = Math.max(S.dorosly.best, S.dorosly.streak);
+    feedback = {ok:true, msg:'Świetnie! To ' + doroslyItem.w};
+    save();
+    setTimeout(()=>{ feedback=null; newDorosly(); render(); }, 1300);
+  } else {
+    S.dorosly.streak = 0;
+    feedback = {ok:false, msg:'Prawidłowo: ' + doroslyItem.w};
+    save();
+    setTimeout(()=>{ feedback=null; newDorosly(); render(); }, 1800);
+  }
+  render();
+}
+
+function tallyMarks(n){
+  const groups = Math.floor(n/5), rem = n%5;
+  let html='';
+  for(let g=0; g<groups; g++){
+    html += `<span class="tallygroup"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="tl diag"></span></span>`;
+  }
+  if(rem>0){
+    html += `<span class="tallygroup">` + Array(rem).fill('<span class="tl"></span>').join('') + `</span>`;
+  }
+  return html || '<span class="tlempty">brak passy</span>';
+}
+
+function tabBtn(id, label, color){
+  return `<button class="tabbtn ${currentTab===id?'active':''}" data-tab="${id}" style="--tabcolor:${color}">${label}</button>`;
+}
+
+function renderMaluch(){
+  if(!maluchWord) newMaluch();
+  return `
+    <p class="instr">Ułóż literki, żeby powstało słowo pasujące do obrazka.</p>
+    <div class="picture">${maluchWord.e}</div>
+    <div class="answerRow">
+      ${Array.from({length:maluchWord.w.length}).map((_,i)=>{
+        const t = maluchAnswer[i];
+        return t ? `<button class="tile filled" data-untap="${t.id}">${t.ch}</button>` : `<span class="slot"></span>`;
+      }).join('')}
+    </div>
+    <div class="tileRow">
+      ${maluchTiles.map(t=>`<button class="tile" data-tap="${t.id}">${t.ch}</button>`).join('')}
+    </div>
+    ${feedback ? `<div class="feedback ${feedback.ok?'ok':'no'}">${feedback.msg}</div>` : ''}
+    ${statsBar('maluch','#F2D675')}
+  `;
+}
+
+function renderUczen(){
+  if(!uczenWord) newUczen();
+  return `
+    <p class="instr">Posłuchaj albo podejrzyj słowo, a potem zapisz je z pamięci.</p>
+    <div class="wordCard ${uczenRevealed?'':'hidden'}">${uczenWord}</div>
+    <div class="btnRow">
+      <button class="chalkbtn" id="revealBtn">👁️ Pokaż</button>
+      <button class="chalkbtn" id="speakBtn">🔊 Odsłuchaj</button>
+    </div>
+    <input id="uczenInput" class="textInput" placeholder="Wpisz słowo..." autocomplete="off" autocapitalize="off">
+    <button class="chalkbtn primary" id="checkUczenBtn">Sprawdź</button>
+    ${feedback ? `<div class="feedback ${feedback.ok?'ok':'no'}">${feedback.msg}</div>` : ''}
+    ${statsBar('uczen','#7EC8E3')}
+  `;
+}
+
+function renderDorosly(){
+  if(!doroslyItem) newDorosly();
+  return `
+    <p class="instr">Rozszyfruj słowo z pomieszanych liter. Definicja podpowie znaczenie.</p>
+    <div class="scrambled">${doroslyScrambled}</div>
+    <div class="defBox">${doroslyItem.d}</div>
+    <input id="doroslyInput" class="textInput" placeholder="Wpisz odpowiedź..." autocomplete="off" autocapitalize="off">
+    <button class="chalkbtn primary" id="checkDoroslyBtn">Sprawdź</button>
+    ${feedback ? `<div class="feedback ${feedback.ok?'ok':'no'}">${feedback.msg}</div>` : ''}
+    ${statsBar('dorosly','#F08A5D')}
+  `;
+}
+
+function statsBar(cat, color){
+  const s = S[cat];
+  return `
+    <div class="statsbar" style="--tabcolor:${color}">
+      <div class="tallywrap">${tallyMarks(s.streak)}</div>
+      <div class="statnums"><b>${s.points}</b> pkt · rekord passy: ${s.best} · rozwiązane: ${s.solved}</div>
+    </div>
+  `;
+}
+
+function render(){
+  let body = '';
+  if(currentTab==='maluch') body = renderMaluch();
+  else if(currentTab==='uczen') body = renderUczen();
+  else if(currentTab==='dorosly') body = renderDorosly();
+
+  document.getElementById('app').innerHTML = `
+    <a class="back" href="index.html">← Minigry</a>
+    <h1>ABC — Czytanie i Pisanie</h1>
+    <p class="sub">Trzy poziomy, jedna tablica. Wybierz swój.</p>
+    <div class="tabs">
+      ${tabBtn('maluch','🧒 Maluch','#F2D675')}
+      ${tabBtn('uczen','✏️ Uczeń','#7EC8E3')}
+      ${tabBtn('dorosly','🎓 Dorosły','#F08A5D')}
+    </div>
+    <div class="board">${body}</div>
+  `;
+
+  document.querySelectorAll('.tabbtn').forEach(el=>{
+    el.onclick = ()=>{ currentTab = el.dataset.tab; feedback=null; render(); };
+  });
+  document.querySelectorAll('[data-tap]').forEach(el=>{
+    el.onclick = ()=>tapTile(el.dataset.tap);
+  });
+  document.querySelectorAll('[data-untap]').forEach(el=>{
+    el.onclick = ()=>untapTile(el.dataset.untap);
+  });
+  const revealBtn = document.getElementById('revealBtn');
+  if(revealBtn) revealBtn.onclick = revealUczen;
+  const speakBtn = document.getElementById('speakBtn');
+  if(speakBtn) speakBtn.onclick = ()=>speak(uczenWord);
+  const checkUczenBtn = document.getElementById('checkUczenBtn');
+  if(checkUczenBtn) checkUczenBtn.onclick = checkUczen;
+  const uczenInput = document.getElementById('uczenInput');
+  if(uczenInput) uczenInput.onkeydown = (e)=>{ if(e.key==='Enter') checkUczen(); };
+  const checkDoroslyBtn = document.getElementById('checkDoroslyBtn');
+  if(checkDoroslyBtn) checkDoroslyBtn.onclick = checkDorosly;
+  const doroslyInput = document.getElementById('doroslyInput');
+  if(doroslyInput) doroslyInput.onkeydown = (e)=>{ if(e.key==='Enter') checkDorosly(); };
+}
+
+render();
+</script>
+</body>
+</html>

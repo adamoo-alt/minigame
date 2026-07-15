@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Symulator Biznesu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F2; --surface:#FFFFFF; --ink:#10262B;
+  --primary:#0F3D3E; --primary-light:#155C56; --primary-dark:#0A2A2B;
+  --accent:#E8A33D; --accent-dark:#C4831F;
+  --accent-2:#5B2A86; --accent-2-light:#7A45AD;
+  --danger:#C1443C; --good:#2F9E68;
+  --border:#DDE3E2; --muted:#5B6E6C;
+  --mono:'IBM Plex Mono',monospace; --serif:'Fraunces',serif; --sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--sans); background:var(--bg); color:var(--ink);
+  min-height:100vh; padding-bottom:90px;
+}
+.tabular{font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:.01em;}
+h1,h2,h3{font-family:var(--serif); margin:0;}
+button{font-family:var(--sans); cursor:pointer;}
+input,select{font-family:var(--sans);}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  background:linear-gradient(135deg,var(--accent-2),#3A1B5C);
+  color:#fff; padding:18px 18px 22px; border-radius:0 0 22px 22px;
+  position:relative; overflow:hidden;
+}
+.topbar::after{
+  content:''; position:absolute; right:-30px; top:-30px; width:160px; height:160px; border-radius:50%;
+  background:radial-gradient(circle, rgba(232,163,61,.25), transparent 70%);
+}
+.topbar-row{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; position:relative; z-index:1;}
+.fam-name{font-size:19px; font-weight:700;}
+.fam-sub{font-size:12px; opacity:.75; margin-top:2px;}
+.month-pill{
+  font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.14);
+  padding:5px 12px; border-radius:999px; white-space:nowrap;
+}
+.cash-row{
+  margin-top:14px; position:relative; z-index:1; background:rgba(255,255,255,.12);
+  border-radius:14px; padding:12px 14px;
+}
+.cash-row .lbl{font-size:11px; opacity:.75; text-transform:uppercase; letter-spacing:.08em;}
+.cash-row .val{font-size:24px; font-weight:700; margin-top:2px;}
+.cash-row .val.neg{color:#FFB4AC;}
+
+/* ---------- Content ---------- */
+.wrap{max-width:640px; margin:0 auto; padding:18px 14px 0;}
+.section-title{
+  font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--muted); margin:22px 2px 10px; display:flex; align-items:center; gap:8px;
+}
+.section-title::after{content:''; flex:1; height:1px; background:var(--border);}
+
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:16px;
+  padding:16px; margin-bottom:12px; box-shadow:0 1px 2px rgba(16,38,43,.03);
+}
+.stat-row{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;}
+.stat{flex:1; min-width:29%; background:var(--bg); border-radius:12px; padding:10px 12px;}
+.stat .label{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:3px;}
+.stat .value{font-size:16px; font-weight:600;}
+.stat .value.neg{color:var(--danger);}
+.stat .value.pos{color:var(--good);}
+
+.btn{
+  border:none; border-radius:11px; padding:11px 16px; font-weight:600; font-size:14px;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px; width:100%;
+}
+.btn-primary{background:var(--primary); color:#fff;}
+.btn-accent{background:var(--accent); color:#3A2705;}
+.btn-purple{background:var(--accent-2); color:#fff;}
+.btn-ghost{background:var(--bg); color:var(--ink); border:1px solid var(--border);}
+.btn-danger{background:rgba(193,68,60,.1); color:var(--danger);}
+.btn-sm{width:auto; padding:8px 12px; font-size:13px;}
+.btn-row{display:flex; gap:8px;}
+.btn-row .btn{flex:1;}
+.btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.45; pointer-events:none;}
+.big-cta{padding:16px; font-size:15.5px; border-radius:14px; box-shadow:0 6px 18px rgba(91,42,134,.3);}
+
+label.field-label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin:10px 0 5px;}
+input[type=text], input[type=number], input[type=date], select.field, textarea.field{
+  width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--border);
+  background:var(--bg); font-size:14.5px; color:var(--ink);
+}
+input:focus, select:focus{outline:2px solid var(--accent-2); outline-offset:1px;}
+
+.pill-tabs{display:flex; gap:4px; overflow-x:auto; padding:2px; margin-bottom:4px;}
+.pill-tabs::-webkit-scrollbar{display:none;}
+.pill{
+  flex-shrink:0; padding:8px 13px; border-radius:999px; font-size:12.5px; font-weight:600;
+  background:var(--bg); color:var(--muted); border:1px solid var(--border); white-space:nowrap;
+}
+.pill.on{background:var(--accent-2); color:#fff; border-color:var(--accent-2);}
+
+.bottomnav{
+  position:fixed; bottom:0; left:0; right:0; background:var(--surface);
+  border-top:1px solid var(--border); display:flex; z-index:20;
+  padding-bottom:env(safe-area-inset-bottom);
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+}
+.navbtn{
+  flex:1 0 auto; min-width:60px; background:none; border:none; padding:9px 2px 7px; display:flex; flex-direction:column;
+  align-items:center; gap:3px; font-size:9.5px; color:var(--muted); font-weight:700;
+}
+.navbtn .ic{font-size:19px;}
+.navbtn.on{color:var(--accent-2);}
+
+.flash{
+  position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:50;
+  background:var(--ink); color:#fff; padding:11px 18px; border-radius:12px; font-size:13.5px;
+  max-width:88vw; box-shadow:0 8px 24px rgba(0,0,0,.25); text-align:center;
+}
+.flash.err{background:var(--danger);}
+.flash.ok{background:var(--good);}
+.flash.warn{background:var(--accent-dark);}
+
+.emp-card{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);}
+.emp-card:last-child{border-bottom:none;}
+.emp-ic{width:38px;height:38px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.emp-name{font-weight:700;font-size:13.5px;}
+.emp-role{font-size:11.5px;color:var(--muted);}
+.emp-sal{font-family:var(--mono);font-size:12.5px;font-weight:600;white-space:nowrap;}
+
+.pl-row{display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border); font-size:13px;}
+.pl-row:last-child{border-bottom:none;}
+.pl-row.total{font-weight:700; border-top:2px solid var(--ink); margin-top:4px; padding-top:8px;}
+.pl-row .pos{color:var(--good);}
+.pl-row .neg{color:var(--danger);}
+
+.badge{font-size:10px; background:rgba(91,42,134,.12); color:var(--accent-2); padding:2px 7px; border-radius:999px; font-weight:600;}
+.badges{display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;}
+
+.progress-track{background:var(--bg); border-radius:999px; height:12px; overflow:hidden; margin:6px 0;}
+.progress-fill{background:linear-gradient(90deg,var(--accent-2),var(--accent-2-light)); height:100%; border-radius:999px; transition:width .3s ease;}
+.rep-fill{background:linear-gradient(90deg,var(--danger),var(--accent),var(--good)); height:100%; border-radius:999px;}
+
+.kid-box{
+  background:linear-gradient(135deg,#F4EBFF,#FFFFFF); border:2px dashed var(--accent-2);
+  border-radius:16px; padding:14px; margin-bottom:12px;
+}
+.kid-box h3{font-size:16px; margin-bottom:6px;}
+.kid-box p{font-size:14px; line-height:1.6; margin:0 0 6px;}
+
+.setup-screen{max-width:460px; margin:40px auto; padding:0 18px;}
+.setup-logo{font-size:44px; text-align:center; margin-bottom:6px;}
+.muted{color:var(--muted); font-size:12.5px;}
+.disclaimer{font-size:11px; color:var(--muted); line-height:1.5; margin-top:8px;}
+hr.sep{border:none; border-top:1px solid var(--border); margin:14px 0;}
+.ind-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;}
+.ind-opt{
+  border:2px solid var(--border); border-radius:12px; padding:10px; text-align:center; background:var(--bg);
+}
+.ind-opt.on{border-color:var(--accent-2); background:rgba(91,42,134,.08);}
+.ind-opt .em{font-size:24px;}
+.ind-opt .nm{font-size:11.5px; font-weight:600; margin-top:4px; line-height:1.3;}
+.legal-opt{border:2px solid var(--border); border-radius:12px; padding:12px; margin-bottom:8px; background:var(--bg);}
+.legal-opt.on{border-color:var(--accent-2); background:rgba(91,42,134,.08);}
+.legal-opt h4{font-size:14px; margin-bottom:3px;}
+.legal-opt p{font-size:12px; color:var(--muted); margin:0;}
+textarea.code-area{
+  width:100%; min-height:80px; border-radius:10px; border:1px solid var(--border);
+  background:var(--bg); padding:10px; font-family:var(--mono); font-size:11.5px; resize:vertical;
+}
+.bankrupt-screen{max-width:440px; margin:60px auto; padding:0 20px; text-align:center;}
+.modal-overlay{position:fixed; inset:0; background:rgba(16,38,43,.55); z-index:60; display:flex; align-items:center; justify-content:center; padding:20px;}
+.modal-box{background:var(--surface); border-radius:16px; padding:20px; max-width:360px; width:100%; box-shadow:0 12px 32px rgba(0,0,0,.3);}
+.modal-box p{font-size:14px; line-height:1.5; margin:0 0 16px;}
+.modal-actions{display:flex; gap:8px;}
+.modal-actions .btn{flex:1;}
+.hist-item{padding:9px 0; border-bottom:1px solid var(--border); font-size:13px;}
+.hist-item:last-child{border-bottom:none;}
+.hist-m{font-family:var(--mono); color:var(--muted); font-size:11px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* =========================================================
+   SYMULATOR BIZNESU — dane, stan, logika
+   ========================================================= */
+const STORAGE_KEY = 'bizSimState_v1';
+
+const INDUSTRIES = [
+  {id:'spozywczy', name:'Sklep spożywczy', em:'🛒', baseRevenue:4200, rent:1800, startCost:5000, costRatio:0.55},
+  {id:'kawiarnia', name:'Kawiarnia', em:'☕', baseRevenue:4800, rent:2800, startCost:12000, costRatio:0.40},
+  {id:'warsztat', name:'Warsztat samochodowy', em:'🔧', baseRevenue:6500, rent:2200, startCost:18000, costRatio:0.35},
+  {id:'it', name:'Firma IT / software', em:'💻', baseRevenue:10000, rent:1200, startCost:6000, costRatio:0.10},
+  {id:'restauracja', name:'Restauracja', em:'🍽️', baseRevenue:7500, rent:4500, startCost:30000, costRatio:0.45},
+  {id:'fryzjer', name:'Salon fryzjerski', em:'💇', baseRevenue:3800, rent:1400, startCost:9000, costRatio:0.25},
+  {id:'transport', name:'Firma transportowa', em:'🚚', baseRevenue:8500, rent:3200, startCost:35000, costRatio:0.40},
+  {id:'ecommerce', name:'Sklep internetowy', em:'📦', baseRevenue:5500, rent:600, startCost:7000, costRatio:0.50},
+  {id:'marketing', name:'Agencja marketingowa', em:'📢', baseRevenue:8000, rent:1400, startCost:8000, costRatio:0.12},
+  {id:'budowlanka', name:'Firma budowlana', em:'🏗️', baseRevenue:10500, rent:2500, startCost:40000, costRatio:0.45},
+];
+
+const LEGAL_FORMS = [
+  {id:'JDG', name:'Jednoosobowa działalność (JDG)', minCapital:0, regFee:100,
+    citRate:0.19, desc:'Najprostsza i najtańsza forma na start. Podatek liniowy 19% od zysku. Właściciel odpowiada całym majątkiem.'},
+  {id:'ZOO', name:'Spółka z o.o.', minCapital:5000, regFee:1500,
+    citRate:0.09, citRateHigh:0.19, revenueThreshold:9000000,
+    desc:'Wymaga kapitału min. 5 000 zł. Niższy CIT 9% dopóki przychody roczne < 9 mln zł ("mały podatnik"), potem 19%.'},
+  {id:'SA', name:'Spółka Akcyjna (S.A.)', minCapital:100000, regFee:5000,
+    citRate:0.19, desc:'Duża, prestiżowa forma dla dojrzałych firm — wymaga kapitału min. 100 000 zł. Najwyższa wiarygodność.'},
+];
+
+const EMPLOYEE_ROLES = [
+  {id:'sprzedawca', name:'Sprzedawca / Pracownik', em:'🧑‍💼', salaryMin:3200, salaryMax:5500},
+  {id:'kierownik', name:'Kierownik zmiany', em:'👔', salaryMin:6000, salaryMax:9000},
+  {id:'ksiegowa', name:'Księgowa / Księgowy', em:'📊', salaryMin:5000, salaryMax:7500},
+  {id:'marketingowiec', name:'Specjalista ds. marketingu', em:'📢', salaryMin:4500, salaryMax:7000},
+  {id:'it', name:'Specjalista IT', em:'💻', salaryMin:6500, salaryMax:11000},
+];
+
+const FIRST_NAMES = ['Anna','Piotr','Kasia','Tomasz','Ola','Marek','Ewa','Michał','Zofia','Jan','Magda','Paweł','Julia','Adam','Natalia','Krzysztof','Basia','Wojtek','Ala','Grzegorz'];
+const LAST_NAMES = ['Kowalski','Nowak','Wiśniewski','Wójcik','Kowalczyk','Kamiński','Lewandowski','Zieliński','Szymański','Dąbrowski','Mazur','Krawczyk'];
+
+const VAT_THRESHOLD = 200000; // roczny limit przychodu, po którym trzeba zarejestrować VAT
+const ZUS_EMPLOYER_RATE = 0.20; // uproszczone składki ZUS pracodawcy
+const VAT_RATE = 0.23;
+const DIVIDEND_TAX_RATE = 0.19; // podatek Belki od wypłaty zysku dla właściciela
+
+const COMPANY_BADGES = [
+  {id:'first10k', title:'🌱 Pierwsze 10 000 zł na koncie', test:s=>s.cash>=10000},
+  {id:'first100k', title:'📈 Pierwsze 100 000 zł na koncie', test:s=>s.cash>=100000},
+  {id:'millionaire', title:'💎 Milionowe imperium', test:s=>s.cash>=1000000},
+  {id:'team10', title:'👥 Zespół 10 osób', test:s=>s.employees.length>=10},
+  {id:'clean12', title:'🕊️ 12 miesięcy bez kary', test:s=>s.cleanStreak>=12},
+  {id:'zoo', title:'🏢 Awans na Sp. z o.o.', test:s=>s.legalForm==='ZOO'||s.legalForm==='SA'},
+  {id:'sa', title:'🏛️ Awans na S.A.', test:s=>s.legalForm==='SA'},
+  {id:'survivor', title:'🛡️ Przetrwał kontrolę bez kary', test:s=>s.passedInspections>=1},
+  {id:'dividend1', title:'💸 Pierwsza wypłata dywidendy', test:s=>(s.personalWealth||0)>0},
+  {id:'privatemillion', title:'👑 Milion na prywatnym koncie', test:s=>(s.personalWealth||0)>=1000000},
+];
+
+let AppState = null;
+let currentTab = 'firma';
+let flashMsg = null;
+let flashTimer = null;
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function flash(text, type){
+  flashMsg = {text, type: type||'info'};
+  clearTimeout(flashTimer);
+  render();
+  flashTimer = setTimeout(()=>{ flashMsg=null; render(); }, 2800);
+}
+function fmt(n){
+  n = Math.round(n*100)/100;
+  return n.toLocaleString('pl-PL', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' zł';
+}
+function fmtShort(n){
+  return Math.round(n).toLocaleString('pl-PL') + ' zł';
+}
+function findIndustry(id){ return INDUSTRIES.find(i=>i.id===id); }
+function findLegalForm(id){ return LEGAL_FORMS.find(l=>l.id===id); }
+function findRole(id){ return EMPLOYEE_ROLES.find(r=>r.id===id); }
+
+/* ---------------- persistence ---------------- */
+let memoryFallback = null; // używane, gdy localStorage jest niedostępny (np. tryb prywatny w niektórych przeglądarkach)
+function loadState(){
+  let raw = null;
+  try{ raw = localStorage.getItem(STORAGE_KEY); }catch(e){ raw = memoryFallback; }
+  if(!raw) return null;
+  try{
+    const s = JSON.parse(raw);
+    if(s.personalWealth===undefined) s.personalWealth = 0;
+    if(s.closed===undefined) s.closed = false;
+    return s;
+  }catch(e){ return null; }
+}
+function saveState(){
+  const raw = JSON.stringify(AppState);
+  memoryFallback = raw;
+  try{ localStorage.setItem(STORAGE_KEY, raw); }catch(e){ /* gra działa dalej, tylko bez zapisu na stałe */ }
+}
+
+/* ---------------- generatory dokumentów firmowych ---------------- */
+function genNip(){
+  const weights = [6,5,7,2,3,4,5,6,7];
+  let digits, check;
+  do{
+    digits = Array.from({length:9},()=>Math.floor(Math.random()*10));
+    let sum = digits.reduce((s,d,i)=>s+d*weights[i],0);
+    check = sum % 11;
+  } while(check===10);
+  return digits.join('')+check;
+}
+function genRegon(){
+  return String(Math.floor(10000000+Math.random()*90000000));
+}
+
+/* ---------------- rejestracja firmy ---------------- */
+function registerCompany(ownerName, companyName, industryId, legalFormId){
+  ownerName=(ownerName||'').trim(); companyName=(companyName||'').trim();
+  if(!ownerName) return flash('Podaj imię właściciela.','err');
+  if(!companyName) return flash('Podaj nazwę firmy.','err');
+  const industry = findIndustry(industryId);
+  const form = findLegalForm(legalFormId);
+  if(!industry || !form) return flash('Wybierz branżę i formę prawną.','err');
+  const totalCost = industry.startCost + form.regFee + form.minCapital;
+  AppState = {
+    ownerName, companyName,
+    industryId, legalForm: legalFormId,
+    nip: genNip(), regon: genRegon(),
+    month: 1,
+    cash: Math.max(form.minCapital, 1500), // kapitał zakładowy + minimalna poduszka na start
+    equipmentLevel: 0, marketingLevel: 0, locations: 1,
+    reputation: 55,
+    employees: [],
+    vatRegistered: false,
+    unpaidTaxes: 0,
+    consecutiveNegative: 0,
+    cleanStreak: 0,
+    passedInspections: 0,
+    totalInspections: 0,
+    revenueLast12: [],
+    history: [],
+    monthlyStats: [],
+    badges: [],
+    bankrupt: false,
+    personalWealth: 0,
+    closed: false
+  };
+  // koszt startu pokrywa "kieszeń właściciela" spoza konta firmy — symulacja wkładu własnego
+  logHist(`🏁 Firma "${companyName}" (${industry.name}, ${form.name}) zarejestrowana! NIP: ${AppState.nip}, REGON: ${AppState.regon}. Wniesiono kapitał: ${fmtShort(form.minCapital)}.`);
+  saveState();
+  currentTab='firma';
+  render();
+}
+function logHist(text){
+  AppState.history.unshift({month: AppState.month, text});
+  if(AppState.history.length>300) AppState.history.pop();
+}
+function restart(){
+  memoryFallback = null;
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){ /* ignoruj, nadpiszemy i tak przy najbliższym saveState */ }
+  AppState = null;
+  currentTab='firma';
+  render();
+}
+
+/* ---------------- modal potwierdzenia (zamiast window.confirm, które w niektórych widokach nie działa) ---------------- */
+let modalState = null;
+function showConfirmModal(text, onConfirm){
+  modalState = {text, onConfirm};
+  render();
+}
+function hideConfirmModal(){
+  modalState = null;
+  render();
+}
+function renderModal(){
+  if(!modalState) return '';
+  return `
+  <div class="modal-overlay">
+    <div class="modal-box">
+      <p>${modalState.text}</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="modalCancel">Anuluj</button>
+        <button class="btn btn-danger" id="modalConfirm">Potwierdź</button>
+      </div>
+    </div>
+  </div>`;
+}
+function attachModalEvents(){
+  if(!modalState) return;
+  const cancel = document.getElementById('modalCancel');
+  const ok = document.getElementById('modalConfirm');
+  if(cancel) cancel.onclick = hideConfirmModal;
+  if(ok) ok.onclick = ()=>{ const fn = modalState.onConfirm; modalState = null; fn(); };
+}
+
+/* ---------------- zamknięcie firmy (z podsumowaniem) ---------------- */
+function requestCloseCompany(){
+  showConfirmModal(`Na pewno chcesz zamknąć firmę "${AppState.companyName}"? Zobaczysz podsumowanie działalności, a potem będziesz mógł/mogła założyć nową firmę.`, ()=>{
+    AppState.closed = true;
+    logHist(`🔒 Firma "${AppState.companyName}" została zamknięta po ${AppState.month} miesiącach działalności.`);
+    saveState();
+    render();
+  });
+}
+
+/* ---------------- dywidenda — wypłata zysku na prywatne konto właściciela ---------------- */
+function payDividend(amount){
+  amount = Number(amount);
+  if(!amount || amount<=0) return flash('Podaj poprawną kwotę.','err');
+  if(amount > AppState.cash) return flash('Firma nie ma tyle środków na koncie.','err');
+  const tax = amount*DIVIDEND_TAX_RATE;
+  const net = amount - tax;
+  AppState.cash -= amount;
+  AppState.personalWealth = (AppState.personalWealth||0) + net;
+  logHist(`💸 Wypłacono dywidendę: ${fmtShort(amount)} (podatek Belki 19%: ${fmtShort(tax)}), na prywatne konto trafiło: ${fmtShort(net)}.`);
+  saveState(); flash('Wypłacono zysk na prywatne konto.','ok'); render();
+}
+
+/* ---------------- wymagana obsada dla lokalizacji ---------------- */
+function requiredStaffForLocations(locations){
+  return Math.max(0, (locations-1)*2); // pierwszą lokalizację ogarnia sam właściciel, każda kolejna potrzebuje ok. 2 osób
+}
+function staffingRatio(){
+  const req = requiredStaffForLocations(AppState.locations);
+  if(req<=0) return 1;
+  return Math.max(0.35, Math.min(1, (AppState.employees.length+1)/(req+1)));
+}
+
+/* ---------------- skalowanie oczekiwań płacowych wraz z wielkością firmy ---------------- */
+function salaryTierMultiplier(){
+  const rev = annualRevenueEstimate();
+  if(rev > 300000000) return 14;
+  if(rev > 30000000) return 7;
+  if(rev > 3000000) return 3;
+  if(rev > 300000) return 1.5;
+  return 1;
+}
+
+/* ---------------- pracownicy ---------------- */
+let candidatePool = [];
+function generateCandidates(roleId){
+  const role = findRole(roleId);
+  const tier = salaryTierMultiplier();
+  candidatePool = Array.from({length:3},()=>{
+    const name = FIRST_NAMES[Math.floor(Math.random()*FIRST_NAMES.length)]+' '+LAST_NAMES[Math.floor(Math.random()*LAST_NAMES.length)];
+    const base = role.salaryMin + Math.random()*(role.salaryMax-role.salaryMin);
+    const salary = Math.round((base*tier)/50)*50;
+    return {name, roleId, salary};
+  });
+}
+function hireEmployee(cand){
+  const role = findRole(cand.roleId);
+  AppState.employees.push({id:uid(), name:cand.name, roleId:cand.roleId, salary:Number(cand.salary), hiredMonth:AppState.month});
+  logHist(`👥 Zatrudniono: ${cand.name} (${role.name}) za ${fmtShort(cand.salary)}/mies.`);
+  candidatePool = [];
+  saveState(); flash(`Zatrudniono ${cand.name}!`,'ok'); render();
+}
+function fireEmployee(id){
+  const emp = AppState.employees.find(e=>e.id===id);
+  if(!emp) return;
+  AppState.employees = AppState.employees.filter(e=>e.id!==id);
+  logHist(`👋 Zwolniono: ${emp.name}.`);
+  AppState.reputation = Math.max(0, AppState.reputation-3);
+  saveState(); flash('Zwolniono pracownika.','ok'); render();
+}
+
+/* ---------------- rozwój firmy ---------------- */
+function equipmentCost(){ return 3000*(AppState.equipmentLevel+1); }
+function marketingCost(){ return 1500*(AppState.marketingLevel+1); }
+function locationCost(){ return 20000*AppState.locations; }
+function investEquipment(){
+  const cost = equipmentCost();
+  if(AppState.cash < cost) return flash(`Za mało środków (potrzeba ${fmtShort(cost)}).`,'err');
+  AppState.cash -= cost;
+  AppState.equipmentLevel += 1;
+  logHist(`🚀 Zainwestowano ${fmtShort(cost)} w sprzęt/wyposażenie (poziom ${AppState.equipmentLevel}).`);
+  saveState(); flash('Sprzęt ulepszony!','ok'); render();
+}
+function investMarketing(){
+  const cost = marketingCost();
+  if(AppState.cash < cost) return flash(`Za mało środków (potrzeba ${fmtShort(cost)}).`,'err');
+  AppState.cash -= cost;
+  AppState.marketingLevel += 1;
+  logHist(`📢 Zainwestowano ${fmtShort(cost)} w marketing (poziom ${AppState.marketingLevel}).`);
+  saveState(); flash('Marketing wzmocniony!','ok'); render();
+}
+function openLocation(){
+  const cost = locationCost();
+  const req = AppState.locations*2;
+  if(AppState.employees.length < req) return flash(`Za mało pracowników — potrzebujesz min. ${req} osób w zespole, żeby obsłużyć kolejną lokalizację.`,'err');
+  if(AppState.cash < cost) return flash(`Za mało środków (potrzeba ${fmtShort(cost)}).`,'err');
+  AppState.cash -= cost;
+  AppState.locations += 1;
+  logHist(`🏬 Otwarto nową lokalizację! Firma ma teraz ${AppState.locations} punktów.`);
+  saveState(); flash('Nowa lokalizacja otwarta!','ok'); render();
+}
+function upgradeLegalForm(){
+  const cur = findLegalForm(AppState.legalForm);
+  const next = AppState.legalForm==='JDG' ? findLegalForm('ZOO') : (AppState.legalForm==='ZOO' ? findLegalForm('SA') : null);
+  if(!next) return flash('To już najwyższa dostępna forma prawna.','err');
+  if(AppState.cash < next.minCapital + next.regFee) return flash(`Potrzebujesz ${fmtShort(next.minCapital+next.regFee)} (kapitał + opłaty), żeby przejść na ${next.name}.`,'err');
+  AppState.cash -= next.regFee;
+  AppState.legalForm = next.id;
+  AppState.reputation = Math.min(100, AppState.reputation+8);
+  logHist(`🏛️ Firma zmieniła formę prawną na: ${next.name}!`);
+  saveState(); flash(`Awans na ${next.name}!`,'ok'); render();
+}
+function registerVat(){
+  if(AppState.vatRegistered) return;
+  AppState.vatRegistered = true;
+  logHist('📋 Firma zarejestrowała się jako płatnik VAT.');
+  saveState(); flash('Zarejestrowano VAT.','ok'); render();
+}
+function payUnpaidTaxes(amount){
+  amount = Number(amount);
+  if(!amount || amount<=0) return flash('Podaj poprawną kwotę.','err');
+  if(AppState.cash < amount) return flash('Za mało środków na koncie firmy.','err');
+  const pay = Math.min(amount, AppState.unpaidTaxes);
+  AppState.cash -= pay;
+  AppState.unpaidTaxes -= pay;
+  logHist(`🧾 Spłacono zaległe podatki: ${fmtShort(pay)}.`);
+  saveState(); flash('Spłacono zaległości podatkowe.','ok'); render();
+}
+
+/* ---------------- MIESIĘCZNY CYKL FIRMY ---------------- */
+function annualRevenueEstimate(){
+  const arr = AppState.revenueLast12;
+  if(arr.length===0) return 0;
+  const avg = arr.reduce((s,v)=>s+v,0)/arr.length;
+  return avg*12;
+}
+function hasRole(roleId){ return AppState.employees.some(e=>e.roleId===roleId); }
+function countRole(roleId){ return AppState.employees.filter(e=>e.roleId===roleId).length; }
+
+async function advanceMonth(){
+  const industry = findIndustry(AppState.industryId);
+  const form = findLegalForm(AppState.legalForm);
+  const logs = [];
+
+  // 1. PRZYCHÓD
+  const sprzedawcy = countRole('sprzedawca');
+  const itSpec = countRole('it');
+  const kierownicy = countRole('kierownik');
+  const marketingowcy = countRole('marketingowiec');
+  const baseWorkers = 1 + sprzedawcy + itSpec*1.4; // 1 = sam właściciel
+  const kierownikBonus = 1 + Math.min(kierownicy,2)*0.12;
+  const marketingMultiplier = 1 + AppState.marketingLevel*0.07 + marketingowcy*0.05;
+  const reputationMultiplier = 0.6 + (AppState.reputation/100)*0.7;
+  const equipmentMultiplier = 1 + AppState.equipmentLevel*0.06;
+  const locationMultiplier = Math.pow(AppState.locations, 0.82); // malejące zyski ze skali — 67 lokalizacji to nie 67x przychodu
+  const staffRatio = staffingRatio(); // kara, jeśli lokalizacji jest więcej niż pozwala na to zespół
+  const randomFactor = 0.94 + Math.random()*0.12; // węższy rozrzut — koniec z loterią przy "spamowaniu" miesięcy
+
+  let revenue = industry.baseRevenue * baseWorkers * kierownikBonus * marketingMultiplier
+                  * reputationMultiplier * equipmentMultiplier * locationMultiplier * staffRatio * randomFactor;
+
+  // wygładzenie miesiąc do miesiąca — przychód nie skacze więcej niż o 25% względem poprzedniego miesiąca
+  const prevStat = AppState.monthlyStats[AppState.monthlyStats.length-1];
+  if(prevStat && prevStat.revenue>0){
+    revenue = Math.min(prevStat.revenue*1.25, Math.max(prevStat.revenue*0.75, revenue));
+  }
+
+  // 2. KOSZTY
+  const rent = industry.rent * AppState.locations * (1 + AppState.equipmentLevel*0.05);
+  const salariesGross = AppState.employees.reduce((s,e)=>s+e.salary,0);
+  const zusEmployer = salariesGross * ZUS_EMPLOYER_RATE;
+  const materials = revenue * industry.costRatio;
+  const marketingSpend = AppState.marketingLevel * 400;
+  const adminOverhead = Math.pow(AppState.locations,1.15)*250 + Math.pow(AppState.employees.length,1.1)*120; // koszty administracyjne rosną szybciej niż liniowo przy dużej skali firmy
+  const totalCosts = rent + salariesGross + zusEmployer + materials + marketingSpend + adminOverhead;
+
+  const profitBeforeTax = revenue - totalCosts;
+
+  // 3. CIT (podatek dochodowy)
+  let citRate = form.citRate;
+  if(form.id==='ZOO' && annualRevenueEstimate() >= form.revenueThreshold) citRate = form.citRateHigh;
+  const citDue = profitBeforeTax>0 ? profitBeforeTax*citRate : 0;
+
+  // 4. VAT
+  const mustRegisterVat = annualRevenueEstimate() > VAT_THRESHOLD;
+  const vatDue = AppState.vatRegistered ? Math.max(0, revenue*VAT_RATE - materials*VAT_RATE) : 0;
+
+  // 5. PRZEPŁYW GOTÓWKI
+  const netChange = revenue - totalCosts - citDue - vatDue;
+  AppState.cash += netChange;
+  const netProfit = revenue - totalCosts - citDue;
+
+  logs.push(`💰 Przychód: ${fmtShort(revenue)} | Koszty: ${fmtShort(totalCosts)} | CIT: ${fmtShort(citDue)}${AppState.vatRegistered?` | VAT: ${fmtShort(vatDue)}`:''} | Zysk netto: ${fmtShort(netProfit)}`);
+
+  // rolling revenue (do progu VAT)
+  AppState.revenueLast12.push(revenue);
+  if(AppState.revenueLast12.length>12) AppState.revenueLast12.shift();
+
+  if(staffRatio<0.95){
+    logs.push(`⚠️ Za mało pracowników jak na ${AppState.locations} lokalizacji — to obniżyło przychód (obsada: ${Math.round(staffRatio*100)}% potrzeby).`);
+  }
+
+  // ostrzeżenie o obowiązku VAT
+  if(mustRegisterVat && !AppState.vatRegistered){
+    logs.push('⚠️ Uwaga: roczne przychody przekroczyły próg 200 000 zł — powinieneś zarejestrować się jako płatnik VAT (zakładka Rozwój)!');
+  }
+
+  // 6. WYPŁATY — czy stać firmę na pensje?
+  if(AppState.cash < -3000){
+    AppState.consecutiveNegative += 1;
+    if(AppState.employees.length>0 && AppState.consecutiveNegative>=2 && Math.random()<0.25){
+      const victim = AppState.employees[Math.floor(Math.random()*AppState.employees.length)];
+      AppState.employees = AppState.employees.filter(e=>e.id!==victim.id);
+      logs.push(`😟 Firma nie miała pieniędzy na pensje na czas — ${victim.name} odszedł/odeszła z firmy (to nielegalne, uważaj na płynność finansową!).`);
+      AppState.reputation = Math.max(0, AppState.reputation-10);
+    }
+  } else {
+    AppState.consecutiveNegative = 0;
+  }
+
+  // 7. KONTROLA (Urząd Skarbowy / ZUS)
+  const accountant = hasRole('ksiegowa');
+  let inspectionChance = 0.08;
+  if(!accountant) inspectionChance += 0.14;
+  if(AppState.unpaidTaxes>0) inspectionChance += 0.15;
+  if(mustRegisterVat && !AppState.vatRegistered) inspectionChance += 0.22;
+  if(AppState.cash<0) inspectionChance += 0.10;
+
+  if(Math.random() < inspectionChance){
+    AppState.totalInspections += 1;
+    const violations = [];
+    if(mustRegisterVat && !AppState.vatRegistered) violations.push('brak rejestracji VAT mimo przekroczenia limitu przychodów');
+    if(AppState.unpaidTaxes>0) violations.push('zaległe podatki');
+    if(!accountant && Math.random()<0.5) violations.push('błędy w dokumentacji księgowej (brak księgowej/księgowego)');
+    if(violations.length>0){
+      const fine = Math.round((500+Math.random()*4500) * violations.length);
+      AppState.cash -= fine;
+      AppState.unpaidTaxes += Math.round(fine*0.3);
+      AppState.reputation = Math.max(0, AppState.reputation-12);
+      AppState.cleanStreak = 0;
+      logs.push(`🕵️ KONTROLA z Urzędu Skarbowego! Znaleziono: ${violations.join(', ')}. Kara: ${fmtShort(fine)}.`);
+    } else {
+      AppState.passedInspections += 1;
+      AppState.cleanStreak += 1;
+      AppState.reputation = Math.min(100, AppState.reputation+5);
+      logs.push('🕵️ Kontrola z Urzędu Skarbowego — wszystko w porządku! Firma dostaje plus do reputacji.');
+    }
+  } else {
+    AppState.cleanStreak += 1;
+  }
+
+  // 8. BANKRUCTWO
+  const bankruptcyLimit = -(totalCosts*5 + 8000);
+  if(AppState.cash < bankruptcyLimit || AppState.consecutiveNegative>=6){
+    AppState.bankrupt = true;
+    logs.push('💥 Firma ogłosiła bankructwo — długi przerosły możliwości spłaty. To koniec tej przygody biznesowej, ale można zacząć od nowa mądrzejszym!');
+  }
+
+  // 9. odznaki
+  COMPANY_BADGES.forEach(b=>{
+    if(!AppState.badges.includes(b.id) && b.test(AppState)) AppState.badges.push(b.id);
+  });
+
+  AppState.monthlyStats.push({month:AppState.month, revenue, totalCosts, citDue, vatDue, netProfit, cash:AppState.cash});
+  if(AppState.monthlyStats.length>36) AppState.monthlyStats.shift();
+
+  AppState.month += 1;
+  logs.forEach(l=>logHist(l));
+  saveState();
+  flash(AppState.bankrupt ? 'Firma zbankrutowała...' : `Rozpoczyna się miesiąc ${AppState.month}.`, AppState.bankrupt?'err':'ok');
+  render();
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+function render(){
+  const app = document.getElementById('app');
+  try{
+    if(!AppState){
+      app.innerHTML = renderSetup() + renderModal();
+      attachSetupEvents();
+      attachModalEvents();
+      return;
+    }
+    if(AppState.closed){
+      app.innerHTML = renderClosedScreen() + renderModal();
+      document.getElementById('restartBtn').onclick = restart;
+      attachModalEvents();
+      return;
+    }
+    if(AppState.bankrupt){
+      app.innerHTML = renderBankrupt() + renderModal();
+      document.getElementById('restartBtn').onclick = restart;
+      attachModalEvents();
+      return;
+    }
+    app.innerHTML = renderMain() + renderModal();
+    attachMainEvents();
+    attachModalEvents();
+  }catch(err){
+    // zabezpieczenie: błąd w jednym widoku nie może zamrozić całej gry bez wyjścia
+    console.error('Błąd renderowania:', err);
+    app.innerHTML = `
+    <div class="bankrupt-screen">
+      <div style="font-size:48px;">⚠️</div>
+      <h1 style="font-size:20px;margin:10px 0;">Coś poszło nie tak przy rysowaniu ekranu</h1>
+      <p class="muted">Szczegóły błędu: ${String(err.message||err)}</p>
+      <button class="btn btn-purple big-cta" id="recoverBtn" style="margin-top:20px;">Wróć do zakładki Firma</button>
+      <button class="btn btn-danger" style="margin-top:10px;" id="hardResetBtn">Zresetuj grę całkowicie</button>
+    </div>`;
+    document.getElementById('recoverBtn').onclick = ()=>{ currentTab='firma'; modalState=null; render(); };
+    document.getElementById('hardResetBtn').onclick = ()=>{ restart(); };
+  }
+}
+
+let setupIndustry = INDUSTRIES[0].id;
+let setupForm = 'JDG';
+function renderSetup(){
+  const industryGrid = INDUSTRIES.map(i=>`
+    <button class="ind-opt ${setupIndustry===i.id?'on':''}" data-industry="${i.id}">
+      <div class="em">${i.em}</div><div class="nm">${i.name}</div>
+    </button>
+  `).join('');
+  const legalOpts = LEGAL_FORMS.map(f=>`
+    <div class="legal-opt ${setupForm===f.id?'on':''}" data-legal="${f.id}">
+      <h4>${f.name} ${f.minCapital>0?`<span class="muted">(kapitał min. ${fmtShort(f.minCapital)})</span>`:''}</h4>
+      <p>${f.desc}</p>
+    </div>
+  `).join('');
+  const industry = findIndustry(setupIndustry);
+  const form = findLegalForm(setupForm);
+  const totalCost = industry.startCost + form.regFee + form.minCapital;
+  return `
+  <div class="setup-screen">
+    <div class="setup-logo">🏢</div>
+    <h1 style="text-align:center;font-size:25px;margin-bottom:6px;">Symulator Biznesu</h1>
+    <p class="muted" style="text-align:center;margin-bottom:18px;">Załóż firmę od zera i rozwijaj ją w milionowe imperium — zatrudniaj ludzi, płać podatki, unikaj kontroli.</p>
+
+    <div class="card">
+      <label class="field-label">Imię właściciela</label>
+      <input type="text" id="ownerName" placeholder="np. Ty!">
+      <label class="field-label">Nazwa firmy</label>
+      <input type="text" id="companyName" placeholder="np. Kowalski Sp. z o.o.">
+      <label class="field-label">Wybierz branżę</label>
+      <div class="ind-grid">${industryGrid}</div>
+      <p class="muted" style="margin-top:8px;">Koszt startu w tej branży: ${fmtShort(industry.startCost)}</p>
+      <label class="field-label">Forma prawna</label>
+      ${legalOpts}
+      <p class="muted">Łączny koszt założenia: <b class="tabular">${fmtShort(totalCost)}</b> (opłata + wpis + kapitał zakładowy)</p>
+      <button class="btn btn-purple big-cta" id="startBizBtn" style="margin-top:16px;">Załóż firmę</button>
+    </div>
+    <p class="disclaimer">To osobna gra, niezależna od "Banku Rodzinnego" — zapisuje się na tym urządzeniu. Zasady (VAT, CIT, ZUS) są uproszczone, ale wzorowane na prawdziwych polskich przepisach.</p>
+  </div>`;
+}
+function attachSetupEvents(){
+  document.querySelectorAll('[data-industry]').forEach(btn=>{
+    btn.onclick = ()=>{ setupIndustry = btn.dataset.industry; render(); };
+  });
+  document.querySelectorAll('[data-legal]').forEach(el=>{
+    el.onclick = ()=>{ setupForm = el.dataset.legal; render(); };
+  });
+  document.getElementById('startBizBtn').onclick = ()=>{
+    registerCompany(document.getElementById('ownerName').value, document.getElementById('companyName').value, setupIndustry, setupForm);
+  };
+}
+function renderBankrupt(){
+  return `
+  <div class="bankrupt-screen">
+    <div style="font-size:56px;">💥</div>
+    <h1 style="font-size:24px;margin:10px 0;">Bankructwo firmy "${AppState.companyName}"</h1>
+    <p class="muted">Firma przetrwała ${AppState.month} miesięcy, zanim długi ją przerosły. Najczęstsze przyczyny: brak księgowej, niezapłacone podatki, zbyt duże koszty względem przychodów.</p>
+    <p class="muted" style="margin-top:8px;">Zdobyte odznaki: ${AppState.badges.length}</p>
+    <button class="btn btn-purple big-cta" id="restartBtn" style="margin-top:20px;">Załóż nową firmę</button>
+  </div>`;
+}
+function renderClosedScreen(){
+  return `
+  <div class="bankrupt-screen">
+    <div style="font-size:56px;">🏁</div>
+    <h1 style="font-size:24px;margin:10px 0;">Firma "${AppState.companyName}" zamknięta</h1>
+    <p class="muted">Działała ${AppState.month} miesięcy pod wodzą: ${AppState.ownerName}.</p>
+    <div class="card" style="text-align:left;margin-top:16px;">
+      <div class="pl-row"><span>Gotówka firmowa na koniec</span><span class="tabular">${fmt(AppState.cash)}</span></div>
+      <div class="pl-row"><span>Twój prywatny majątek (dywidendy)</span><span class="tabular pos">${fmt(AppState.personalWealth||0)}</span></div>
+      <div class="pl-row"><span>Zespół na koniec</span><span class="tabular">${AppState.employees.length} osób</span></div>
+      <div class="pl-row"><span>Lokalizacje</span><span class="tabular">${AppState.locations}</span></div>
+      <div class="pl-row total"><span>Zdobyte odznaki</span><span class="tabular">${AppState.badges.length}/${COMPANY_BADGES.length}</span></div>
+    </div>
+    <button class="btn btn-purple big-cta" id="restartBtn" style="margin-top:20px;">Załóż nową firmę</button>
+  </div>`;
+}
+
+/* ---------- main app shell ---------- */
+function renderMain(){
+  const industry = findIndustry(AppState.industryId);
+  const form = findLegalForm(AppState.legalForm);
+  return `
+  ${flashMsg ? `<div class="flash ${flashMsg.type==='err'?'err':flashMsg.type==='ok'?'ok':flashMsg.type==='warn'?'warn':''}">${flashMsg.text}</div>` : ''}
+  <div class="topbar">
+    <div class="topbar-row">
+      <div>
+        <div class="fam-name">${industry.em} ${AppState.companyName}</div>
+        <div class="fam-sub">${AppState.ownerName} · ${form.name}</div>
+      </div>
+      <div class="month-pill">Miesiąc ${AppState.month}</div>
+    </div>
+    <div class="cash-row">
+      <div class="lbl">Konto firmowe</div>
+      <div class="val tabular ${AppState.cash<0?'neg':''}">${fmt(AppState.cash)}</div>
+      ${AppState.personalWealth>0 ? `<div class="lbl" style="margin-top:8px;">Twój prywatny majątek</div><div class="val tabular" style="font-size:16px;">${fmt(AppState.personalWealth)}</div>` : ''}
+    </div>
+  </div>
+  <div class="wrap">
+    ${renderTabContent()}
+  </div>
+  <div class="bottomnav">
+    ${navBtn('firma','🏢','Firma')}
+    ${navBtn('pracownicy','👥','Zespół')}
+    ${navBtn('ksiegowosc','📒','Księgowość')}
+    ${navBtn('rozwoj','🚀','Rozwój')}
+    ${navBtn('kontrole','🕵️','Historia')}
+    ${navBtn('pomoc','❓','Pomoc')}
+  </div>
+  `;
+}
+function navBtn(id,ic,label){
+  return `<button class="navbtn ${currentTab===id?'on':''}" data-tab="${id}"><span class="ic">${ic}</span>${label}</button>`;
+}
+
+function renderTabContent(){
+  switch(currentTab){
+    case 'firma': return renderFirma();
+    case 'pracownicy': return renderPracownicy();
+    case 'ksiegowosc': return renderKsiegowosc();
+    case 'rozwoj': return renderRozwoj();
+    case 'kontrole': return renderKontrole();
+    case 'pomoc': return renderPomoc();
+    default: return '';
+  }
+}
+
+/* ---------- FIRMA (dashboard) ---------- */
+function renderFirma(){
+  const industry = findIndustry(AppState.industryId);
+  const salariesGross = AppState.employees.reduce((s,e)=>s+e.salary,0);
+  const lastStat = AppState.monthlyStats[AppState.monthlyStats.length-1];
+  return `
+  <button class="btn btn-purple big-cta" id="advanceMonthBtn">⏭️ Zakończ miesiąc ${AppState.month}</button>
+
+  <div class="section-title">Kondycja firmy</div>
+  <div class="card">
+    <div class="stat-row">
+      <div class="stat"><div class="label">Pracownicy</div><div class="value">${AppState.employees.length}</div></div>
+      <div class="stat"><div class="label">Lokalizacje</div><div class="value">${AppState.locations}</div></div>
+      <div class="stat"><div class="label">Forma prawna</div><div class="value" style="font-size:13px;">${AppState.legalForm}</div></div>
+    </div>
+    <label class="field-label">Reputacja firmy (${AppState.reputation}/100)</label>
+    <div class="progress-track"><div class="rep-fill" style="width:${AppState.reputation}%;"></div></div>
+    ${AppState.unpaidTaxes>0 ? `<p class="muted" style="color:var(--danger);margin-top:8px;">⚠️ Zaległe podatki: ${fmtShort(AppState.unpaidTaxes)} — spłać je w zakładce Księgowość, zanim znajdzie je kontrola!</p>` : ''}
+    ${(()=>{ const req=requiredStaffForLocations(AppState.locations); return req>0 && AppState.employees.length<req ? `<p class="muted" style="color:var(--danger);margin-top:8px;">⚠️ Za mało pracowników na ${AppState.locations} lokalizacji (masz ${AppState.employees.length}, potrzeba min. ${req}) — to obniża przychody.</p>` : ''; })()}
+    ${AppState.vatRegistered ? `<p class="muted" style="margin-top:6px;">✅ Firma jest płatnikiem VAT.</p>` : ''}
+  </div>
+
+  ${lastStat ? `
+  <div class="section-title">Ostatni miesiąc</div>
+  <div class="card">
+    <div class="pl-row"><span>Przychód</span><span class="tabular pos">${fmt(lastStat.revenue)}</span></div>
+    <div class="pl-row"><span>Koszty</span><span class="tabular neg">-${fmt(lastStat.totalCosts)}</span></div>
+    <div class="pl-row"><span>CIT</span><span class="tabular neg">-${fmt(lastStat.citDue)}</span></div>
+    ${AppState.vatRegistered?`<div class="pl-row"><span>VAT do zapłaty</span><span class="tabular neg">-${fmt(lastStat.vatDue)}</span></div>`:''}
+    <div class="pl-row total"><span>Zysk netto</span><span class="tabular ${lastStat.netProfit>=0?'pos':'neg'}">${fmt(lastStat.netProfit)}</span></div>
+  </div>` : `<div class="kid-box"><p>Kliknij "Zakończ miesiąc", żeby zobaczyć pierwsze wyniki firmy!</p></div>`}
+
+  <div class="section-title">🏅 Odznaki (${AppState.badges.length}/${COMPANY_BADGES.length})</div>
+  <div class="card">
+    <div class="badges">
+      ${AppState.badges.length ? COMPANY_BADGES.filter(b=>AppState.badges.includes(b.id)).map(b=>`<span class="badge">${b.title}</span>`).join('') : '<p class="muted">Jeszcze żadnych — do dzieła!</p>'}
+    </div>
+  </div>
+  `;
+}
+
+/* ---------- PRACOWNICY ---------- */
+function renderPracownicy(){
+  const salariesGross = AppState.employees.reduce((s,e)=>s+e.salary,0);
+  const zus = salariesGross*ZUS_EMPLOYER_RATE;
+  return `
+  <div class="section-title">Zespół (${AppState.employees.length} osób)</div>
+  <div class="card">
+    ${AppState.employees.length===0 ? '<p class="muted">Nikogo jeszcze nie zatrudniłeś/aś.</p>' : AppState.employees.map(e=>{
+      const role = findRole(e.roleId);
+      return `
+      <div class="emp-card">
+        <div class="emp-ic">${role.em}</div>
+        <div style="flex:1;">
+          <div class="emp-name">${e.name}</div>
+          <div class="emp-role">${role.name}</div>
+        </div>
+        <div class="emp-sal tabular">${fmtShort(e.salary)}/mc</div>
+        <button class="btn btn-danger btn-sm" data-fire="${e.id}">✕</button>
+      </div>`;
+    }).join('')}
+    ${AppState.employees.length>0 ? `<p class="muted" style="margin-top:10px;">Łącznie pensje: ${fmtShort(salariesGross)} + składki ZUS pracodawcy (20%): ${fmtShort(zus)} = ${fmtShort(salariesGross+zus)}/mies.</p>` : ''}
+  </div>
+
+  <div class="section-title">Zatrudnij nową osobę</div>
+  <div class="card">
+    <label class="field-label">Jaka rola jest potrzebna?</label>
+    <select class="field" id="roleSelect">${EMPLOYEE_ROLES.map(r=>`<option value="${r.id}">${r.em} ${r.name}</option>`).join('')}</select>
+    <button class="btn btn-ghost" style="margin-top:10px;" id="findCandidates">Szukaj kandydatów</button>
+    ${candidatePool.length ? candidatePool.map((c,i)=>`
+      <div class="emp-card">
+        <div class="emp-ic">${findRole(c.roleId).em}</div>
+        <div style="flex:1;">
+          <div class="emp-name">${c.name}</div>
+          <div class="emp-role">Oczekiwania: ${fmtShort(c.salary)}/mies.</div>
+        </div>
+        <button class="btn btn-primary btn-sm" data-hire="${i}">Zatrudnij</button>
+      </div>
+    `).join('') : ''}
+    <p class="disclaimer" style="margin-top:8px;">📊 Księgowa/Księgowy mocno zmniejsza ryzyko kar podczas kontroli. 👔 Kierownik podnosi wydajność zespołu. 📢 Marketingowiec wzmacnia efekt reklamy.</p>
+  </div>
+  `;
+}
+
+/* ---------- KSIĘGOWOŚĆ ---------- */
+function renderKsiegowosc(){
+  const mustRegisterVat = annualRevenueEstimate() > VAT_THRESHOLD;
+  return `
+  <div class="section-title">Status podatkowy</div>
+  <div class="card">
+    <div class="stat-row">
+      <div class="stat"><div class="label">NIP</div><div class="value tabular" style="font-size:13px;">${AppState.nip}</div></div>
+      <div class="stat"><div class="label">REGON</div><div class="value tabular" style="font-size:13px;">${AppState.regon}</div></div>
+      <div class="stat"><div class="label">VAT</div><div class="value" style="font-size:13px;">${AppState.vatRegistered?'Płatnik':'Nie zarejestrowana'}</div></div>
+    </div>
+    <p class="muted" style="margin-top:10px;">Szacowany roczny przychód: <b class="tabular">${fmtShort(annualRevenueEstimate())}</b> (limit rejestracji VAT: ${fmtShort(VAT_THRESHOLD)})</p>
+    ${mustRegisterVat && !AppState.vatRegistered ? `
+      <p class="muted" style="color:var(--danger);margin-top:6px;">⚠️ Przekroczono limit — zarejestruj VAT, zanim znajdzie to kontrola!</p>
+      <button class="btn btn-accent btn-sm" style="margin-top:8px;" id="doRegisterVat">Zarejestruj VAT teraz</button>
+    ` : (!AppState.vatRegistered ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px;" id="doRegisterVat">Zarejestruj VAT dobrowolnie</button>` : '')}
+  </div>
+
+  ${AppState.unpaidTaxes>0 ? `
+  <div class="section-title">Zaległości podatkowe</div>
+  <div class="card">
+    <p class="muted" style="color:var(--danger);">Do zapłaty: <b class="tabular">${fmtShort(AppState.unpaidTaxes)}</b> (z poprzednich kar/kontroli)</p>
+    <input type="number" id="payTaxAmount" placeholder="Kwota do spłaty" style="margin-top:8px;">
+    <button class="btn btn-primary btn-sm" style="margin-top:8px;" id="doPayTax">Spłać</button>
+  </div>` : ''}
+
+  <div class="section-title">Rachunek zysków i strat — ostatnie miesiące</div>
+  <div class="card">
+    ${AppState.monthlyStats.length===0 ? '<p class="muted">Brak danych — zakończ pierwszy miesiąc.</p>' : [...AppState.monthlyStats].reverse().slice(0,6).map(s=>`
+      <hr class="sep" style="margin:10px 0;">
+      <p class="muted" style="font-family:var(--mono);font-size:11px;">MIESIĄC ${s.month}</p>
+      <div class="pl-row"><span>Przychód</span><span class="tabular pos">${fmt(s.revenue)}</span></div>
+      <div class="pl-row"><span>Koszty</span><span class="tabular neg">-${fmt(s.totalCosts)}</span></div>
+      <div class="pl-row"><span>CIT</span><span class="tabular neg">-${fmt(s.citDue)}</span></div>
+      <div class="pl-row total"><span>Zysk netto</span><span class="tabular ${s.netProfit>=0?'pos':'neg'}">${fmt(s.netProfit)}</span></div>
+    `).join('')}
+  </div>
+  `;
+}
+
+/* ---------- ROZWÓJ ---------- */
+function renderRozwoj(){
+  const nextForm = AppState.legalForm==='JDG' ? findLegalForm('ZOO') : (AppState.legalForm==='ZOO' ? findLegalForm('SA') : null);
+  return `
+  <div class="section-title">Inwestycje w rozwój</div>
+  <div class="card">
+    <h3 style="font-size:14.5px;">🛠️ Sprzęt i wyposażenie — poziom ${AppState.equipmentLevel}</h3>
+    <p class="muted">Podnosi wydajność i przychody, ale też trochę zwiększa czynsz.</p>
+    <button class="btn btn-ghost btn-sm" style="margin-top:8px;" id="doInvestEquip">Ulepsz za ${fmtShort(equipmentCost())}</button>
+  </div>
+  <div class="card">
+    <h3 style="font-size:14.5px;">📢 Marketing — poziom ${AppState.marketingLevel}</h3>
+    <p class="muted">Zwiększa liczbę klientów i przychody każdego miesiąca.</p>
+    <button class="btn btn-ghost btn-sm" style="margin-top:8px;" id="doInvestMarketing">Zainwestuj ${fmtShort(marketingCost())}</button>
+  </div>
+  <div class="card">
+    <h3 style="font-size:14.5px;">🏬 Nowa lokalizacja — masz ${AppState.locations}</h3>
+    <p class="muted">Otwarcie kolejnego punktu zwiększa potencjalny przychód firmy (z malejącymi zyskami ze skali). Wymaga min. ${AppState.locations*2} pracowników w zespole — inaczej lokalizacje stoją puste.</p>
+    <button class="btn btn-ghost btn-sm" style="margin-top:8px;" id="doOpenLocation">Otwórz za ${fmtShort(locationCost())}</button>
+  </div>
+
+  <div class="section-title">Wypłata zysku</div>
+  <div class="card">
+    <p class="muted">Gotówka na koncie firmy to nie to samo, co Twój prywatny majątek. Wypłać część zysku jako dywidendę (podatek Belki 19%), żeby zrobić z niej użytek poza firmą.</p>
+    <p class="muted" style="margin-top:8px;">Twój prywatny majątek: <b class="tabular">${fmt(AppState.personalWealth||0)}</b></p>
+    <label class="field-label">Kwota do wypłaty z konta firmy</label>
+    <input type="number" id="dividendAmount" placeholder="np. 50000">
+    <button class="btn btn-accent btn-sm" style="margin-top:8px;" id="doPayDividend">Wypłać dywidendę</button>
+  </div>
+
+  <div class="section-title">Forma prawna</div>
+  <div class="card">
+    <p class="muted">Obecna forma: <b>${findLegalForm(AppState.legalForm).name}</b></p>
+    ${nextForm ? `
+      <p class="muted" style="margin-top:6px;">Następny poziom: <b>${nextForm.name}</b> — wymaga kapitału ${fmtShort(nextForm.minCapital)} + opłaty ${fmtShort(nextForm.regFee)}.</p>
+      <button class="btn btn-accent btn-sm" style="margin-top:8px;" id="doUpgradeLegal">Zmień formę prawną</button>
+    ` : `<p class="muted" style="margin-top:6px;">To już najwyższa forma prawna — gratulacje, prawdziwe imperium! 👑</p>`}
+  </div>
+  `;
+}
+
+/* ---------- HISTORIA / KONTROLE ---------- */
+function renderKontrole(){
+  return `
+  <div class="section-title">Kontrole</div>
+  <div class="card">
+    <div class="stat-row">
+      <div class="stat"><div class="label">Łącznie kontroli</div><div class="value">${AppState.totalInspections}</div></div>
+      <div class="stat"><div class="label">Zaliczone bez kary</div><div class="value pos">${AppState.passedInspections}</div></div>
+      <div class="stat"><div class="label">Seria bez kary</div><div class="value">${AppState.cleanStreak} mies.</div></div>
+    </div>
+  </div>
+  <div class="section-title">Historia zdarzeń</div>
+  <div class="card">
+    ${AppState.history.length===0 ? '<p class="muted">Brak zdarzeń — zacznij grać!</p>' : AppState.history.map(h=>`
+      <div class="hist-item"><span>${h.text}</span><br><span class="hist-m">Miesiąc ${h.month}</span></div>
+    `).join('')}
+  </div>
+  <div class="section-title">Zamknij firmę</div>
+  <div class="card">
+    <p class="muted">Zakończ działalność firmy. Zobaczysz podsumowanie (gotówka, majątek prywatny, odznaki), a potem będziesz mógł/mogła założyć nową firmę. Ta operacja jest nieodwracalna.</p>
+    <button class="btn btn-danger" style="margin-top:10px;" id="resetBiz">Zamknij firmę</button>
+  </div>
+  `;
+}
+
+/* ---------- POMOC ---------- */
+function renderPomoc(){
+  return `
+  <div class="kid-box">
+    <h3>👋 Jak działa ta gra?</h3>
+    <p>Prowadzisz prawdziwą firmę! Co miesiąc firma zarabia (przychód), płaci rachunki i podatki (koszty), a to, co zostaje, to zysk.</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:14.5px;">🏢 Firma</h3>
+    <p class="muted" style="margin-top:4px;">Tu klikasz "Zakończ miesiąc" i widzisz wyniki firmy.</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:14.5px;">👥 Zespół</h3>
+    <p class="muted" style="margin-top:4px;">Zatrudniaj pracowników. Płacisz im pensje co miesiąc — jeśli firmę na to nie stać, ludzie odchodzą!</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:14.5px;">📒 Księgowość</h3>
+    <p class="muted" style="margin-top:4px;">Tu widzisz podatki: CIT (od zysku) i VAT (od sprzedaży). Jeśli firma dużo zarabia, trzeba zarejestrować VAT — inaczej grozi kara.</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:14.5px;">🚀 Rozwój</h3>
+    <p class="muted" style="margin-top:4px;">Inwestuj zyski w sprzęt, marketing, nowe lokalizacje albo zmień formę prawną, żeby płacić niższe podatki. Każda nowa lokalizacja wymaga odpowiedniej liczby pracowników — puste lokalizacje nie zarabiają. Tu też wypłacasz dywidendę: zamieniasz gotówkę firmową na swój prywatny majątek (po podatku Belki 19%).</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:14.5px;">🕵️ Kontrole</h3>
+    <p class="muted" style="margin-top:4px;">Czasem przychodzi kontrola z Urzędu Skarbowego. Księgowa w zespole i płacenie podatków na czas mocno zmniejszają ryzyko kary.</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:14.5px;">🏁 Zamknięcie firmy</h3>
+    <p class="muted" style="margin-top:4px;">W zakładce Historia możesz zamknąć firmę na własne życzenie — zobaczysz podsumowanie działalności i będziesz mógł/mogła założyć nową. Im większa firma, tym wyższych pensji oczekują kandydaci do pracy — to normalne przy dużej skali.</p>
+  </div>
+  <div class="kid-box">
+    <h3>💡 Najważniejsza zasada</h3>
+    <p>Zawsze miej więcej pieniędzy na koncie firmy, niż wynoszą Twoje miesięczne koszty — to bezpieczna poduszka finansowa!</p>
+  </div>
+  `;
+}
+
+/* =========================================================
+   EVENT WIRING
+   ========================================================= */
+function attachMainEvents(){
+  document.querySelectorAll('.navbtn').forEach(b=>{
+    b.onclick = ()=>{ currentTab = b.dataset.tab; candidatePool=[]; render(); };
+  });
+  const advBtn = document.getElementById('advanceMonthBtn');
+  if(advBtn) advBtn.onclick = async ()=>{ advBtn.disabled=true; advBtn.textContent='Przetwarzanie...'; await advanceMonth(); };
+
+  // pracownicy
+  document.querySelectorAll('[data-fire]').forEach(btn=>{
+    btn.onclick = ()=>{ showConfirmModal('Na pewno zwolnić tę osobę?', ()=>fireEmployee(btn.dataset.fire)); };
+  });
+  const findCandidates = document.getElementById('findCandidates');
+  if(findCandidates) findCandidates.onclick = ()=>{
+    generateCandidates(document.getElementById('roleSelect').value);
+    render();
+  };
+  document.querySelectorAll('[data-hire]').forEach(btn=>{
+    btn.onclick = ()=>{ hireEmployee(candidatePool[Number(btn.dataset.hire)]); };
+  });
+
+  // księgowość
+  const doRegisterVat = document.getElementById('doRegisterVat');
+  if(doRegisterVat) doRegisterVat.onclick = ()=>{ registerVat(); };
+  const doPayTax = document.getElementById('doPayTax');
+  if(doPayTax) doPayTax.onclick = ()=>{ payUnpaidTaxes(document.getElementById('payTaxAmount').value); };
+
+  // rozwój
+  const doInvestEquip = document.getElementById('doInvestEquip');
+  if(doInvestEquip) doInvestEquip.onclick = ()=>{ investEquipment(); };
+  const doInvestMarketing = document.getElementById('doInvestMarketing');
+  if(doInvestMarketing) doInvestMarketing.onclick = ()=>{ investMarketing(); };
+  const doOpenLocation = document.getElementById('doOpenLocation');
+  if(doOpenLocation) doOpenLocation.onclick = ()=>{ openLocation(); };
+  const doUpgradeLegal = document.getElementById('doUpgradeLegal');
+  if(doUpgradeLegal) doUpgradeLegal.onclick = ()=>{ upgradeLegalForm(); };
+  const doPayDividend = document.getElementById('doPayDividend');
+  if(doPayDividend) doPayDividend.onclick = ()=>{ payDividend(document.getElementById('dividendAmount').value); };
+
+  // zamknięcie firmy
+  const resetBiz = document.getElementById('resetBiz');
+  if(resetBiz) resetBiz.onclick = ()=>{ requestCloseCompany(); };
+}
+
+/* ---------------- init ---------------- */
+(function init(){
+  try{
+    AppState = loadState();
+  }catch(e){
+    console.error('Błąd wczytywania zapisu, startuję od nowa:', e);
+    AppState = null;
+  }
+  render();
+})();
+</script>
+
+</body>
+</html>
