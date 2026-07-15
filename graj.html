@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grasz — Minigry Rodzinne</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{ --bg:#EEF1F2; --ink:#10262B; --primary:#0F3D3E; --muted:#5B6E6C; --border:#DDE3E2; }
+  *{box-sizing:border-box;}
+  body{ margin:0; font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+  .bar{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 16px; background:#fff; border-bottom:1px solid var(--border);
+  }
+  .bar a{ color:var(--primary); text-decoration:none; font-size:13.5px; font-weight:600; }
+  .bar .info{ font-size:12px; color:var(--muted); text-align:right; }
+  #frameWrap{ height:calc(100vh - 49px); }
+  iframe{ width:100%; height:100%; border:none; display:block; }
+  .center-msg{
+    display:flex; align-items:center; justify-content:center; height:70vh;
+    color:var(--muted); font-size:14px; text-align:center; padding:0 20px;
+  }
+</style>
+</head>
+<body>
+  <div class="bar">
+    <a href="index.html">&larr; Wróć do menu</a>
+    <div class="info" id="gameInfo">Wczytuję grę…</div>
+  </div>
+  <div id="frameWrap">
+    <div class="center-msg" id="loadingMsg">Wczytuję grę…</div>
+  </div>
+
+<script>
+  const SUPABASE_URL = "https://oesvwvqkzuyxawowgffx.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_l1IZEgjZq3s0uGrKMjyrSg_-OG1xUTL";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const params = new URLSearchParams(window.location.search);
+  const gameId = params.get('id');
+  const frameWrap = document.getElementById('frameWrap');
+  const gameInfo = document.getElementById('gameInfo');
+
+  async function loadGame(){
+    if (!gameId){
+      frameWrap.innerHTML = '<div class="center-msg">Brak wskazanej gry.</div>';
+      return;
+    }
+
+    const { data, error } = await sb
+      .from('games')
+      .select('title, author_name, code, status')
+      .eq('id', gameId)
+      .single();
+
+    if (error || !data || data.status !== 'published'){
+      frameWrap.innerHTML = '<div class="center-msg">Nie udało się wczytać tej gry (mogła zostać usunięta).</div>';
+      return;
+    }
+
+    document.title = data.title + ' — Minigry Rodzinne';
+    gameInfo.textContent = `${data.title} · autor: ${data.author_name}`;
+
+    // Kod użytkownika ląduje TYLKO w piaskownicy iframe — allow-scripts, BEZ allow-same-origin,
+    // więc nie ma dostępu do ciasteczek, localStorage ani reszty tej strony.
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts allow-forms');
+    iframe.srcdoc = data.code;
+    frameWrap.innerHTML = '';
+    frameWrap.appendChild(iframe);
+
+    // Licznik odegrań — nieblokujący, błąd tu nie przerywa gry
+    sb.rpc('increment_game_play', { p_id: gameId }).catch(() => {});
+  }
+
+  loadGame();
+</script>
+</body>
+</html>
