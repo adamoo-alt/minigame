@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mój Sklepik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFF6ED; --surface:#FFFFFF; --ink:#3A2618;
+  --primary:#E85D4C; --primary-light:#F2795F; --primary-dark:#C1402F;
+  --accent:#FFC145; --accent-dark:#E0A227;
+  --good:#3FA96B; --danger:#D9483B; --muted:#8A7362;
+  --border:#F0DFCB; --mono:'IBM Plex Mono',monospace; --round:'Baloo 2',sans-serif; --sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--sans); background:var(--bg); color:var(--ink);
+  min-height:100vh; padding-bottom:92px;
+}
+.tabular{font-family:var(--mono); font-variant-numeric:tabular-nums;}
+h1,h2,h3{font-family:var(--round); margin:0;}
+button{font-family:var(--sans); cursor:pointer;}
+input,select{font-family:var(--sans);}
+
+.topbar{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff; padding:18px 18px 22px; border-radius:0 0 26px 26px; position:relative; overflow:hidden;
+}
+.topbar::after{content:''; position:absolute; right:-20px; top:-30px; width:150px; height:150px; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,193,69,.3), transparent 70%);}
+.topbar-row{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; position:relative; z-index:1;}
+.fam-name{font-family:var(--round); font-size:21px; font-weight:800;}
+.fam-sub{font-size:12px; opacity:.85; margin-top:2px;}
+.day-pill{font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.18); padding:6px 13px; border-radius:999px; white-space:nowrap;}
+.cash-row{margin-top:14px; position:relative; z-index:1; background:rgba(255,255,255,.16); border-radius:16px; padding:12px 14px;}
+.cash-row .lbl{font-size:11px; opacity:.85; text-transform:uppercase; letter-spacing:.06em;}
+.cash-row .val{font-family:var(--round); font-size:27px; font-weight:800; margin-top:2px;}
+
+.wrap{max-width:640px; margin:0 auto; padding:18px 14px 0;}
+.section-title{font-family:var(--round); font-size:15px; font-weight:700; color:var(--primary-dark); margin:20px 2px 10px; display:flex; align-items:center; gap:8px;}
+
+.card{background:var(--surface); border:2px solid var(--border); border-radius:20px; padding:16px; margin-bottom:14px; box-shadow:0 2px 6px rgba(58,38,24,.05);}
+.kid-box{background:linear-gradient(135deg,#FFF1DD,#FFFFFF); border:3px dashed var(--accent); border-radius:20px; padding:16px; margin-bottom:14px;}
+.kid-box h3{font-size:18px; margin-bottom:6px;}
+.kid-box p{font-size:14.5px; line-height:1.6; margin:0 0 6px;}
+
+.btn{border:none; border-radius:14px; padding:13px 16px; font-weight:700; font-size:15px; display:inline-flex; align-items:center; justify-content:center; gap:7px; width:100%; font-family:var(--round);}
+.btn-primary{background:var(--primary); color:#fff;}
+.btn-accent{background:var(--accent); color:#4A3200;}
+.btn-ghost{background:var(--bg); color:var(--ink); border:2px solid var(--border);}
+.btn-danger{background:rgba(217,72,59,.12); color:var(--danger);}
+.btn-sm{width:auto; padding:9px 14px; font-size:14px;}
+.btn-row{display:flex; gap:8px;}
+.btn-row .btn{flex:1;}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.4; pointer-events:none;}
+.big-cta{padding:18px; font-size:17px; border-radius:18px; box-shadow:0 6px 18px rgba(232,93,76,.32);}
+
+.stepper{display:flex; align-items:center; gap:10px; justify-content:center;}
+.step-btn{width:38px; height:38px; border-radius:50%; border:2px solid var(--border); background:var(--bg); font-size:19px; font-weight:800; display:flex; align-items:center; justify-content:center;}
+.step-val{font-family:var(--round); font-size:19px; font-weight:800; min-width:38px; text-align:center;}
+
+.prod-card{display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:2px solid var(--border);}
+.prod-card:last-child{border-bottom:none;}
+.prod-ic{width:46px; height:46px; border-radius:13px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;}
+.prod-name{font-weight:700; font-size:14.5px;}
+.prod-sub{font-size:11.5px; color:var(--muted);}
+
+.face{font-size:20px;}
+.pill-tabs{display:flex; gap:4px; overflow-x:auto; padding:2px; margin-bottom:4px;}
+.pill{flex-shrink:0; padding:8px 14px; border-radius:999px; font-size:13px; font-weight:700; background:var(--bg); color:var(--muted); border:2px solid var(--border); white-space:nowrap; font-family:var(--round);}
+.pill.on{background:var(--primary); color:#fff; border-color:var(--primary);}
+
+.bottomnav{position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:2px solid var(--border); display:flex; z-index:20; padding-bottom:env(safe-area-inset-bottom);}
+.navbtn{flex:1; background:none; border:none; padding:10px 2px 8px; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; color:var(--muted); font-weight:700; font-family:var(--round);}
+.navbtn .ic{font-size:22px;}
+.navbtn.on{color:var(--primary);}
+
+.flash{position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:50; background:var(--ink); color:#fff; padding:12px 20px; border-radius:14px; font-size:14px; max-width:88vw; box-shadow:0 8px 24px rgba(0,0,0,.25); text-align:center; font-weight:600;}
+.flash.err{background:var(--danger);}
+.flash.ok{background:var(--good);}
+
+.setup-screen{max-width:460px; margin:30px auto; padding:0 18px;}
+.setup-logo{font-size:50px; text-align:center; margin-bottom:6px;}
+.muted{color:var(--muted); font-size:12.5px;}
+.theme-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;}
+.theme-opt{border:3px solid var(--border); border-radius:16px; padding:14px 8px; text-align:center; background:var(--bg);}
+.theme-opt.on{border-color:var(--primary); background:#FFF0EC;}
+.theme-opt .em{font-size:32px;}
+.theme-opt .nm{font-size:12.5px; font-weight:700; margin-top:5px; font-family:var(--round);}
+label.field-label{display:block; font-size:13px; font-weight:700; color:var(--muted); margin:12px 0 6px; font-family:var(--round);}
+input[type=text]{width:100%; padding:12px 13px; border-radius:12px; border:2px solid var(--border); background:var(--bg); font-size:15px; color:var(--ink);}
+input:focus{outline:3px solid var(--accent); outline-offset:1px;}
+
+.log-item{padding:8px 0; border-bottom:1px solid var(--border); font-size:13.5px; line-height:1.4;}
+.log-item:last-child{border-bottom:none;}
+.badge{font-size:11px; background:rgba(232,93,76,.12); color:var(--primary-dark); padding:4px 10px; border-radius:999px; font-weight:700; font-family:var(--round);}
+.badges{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+.summary-hero{text-align:center; padding:10px 0;}
+.summary-hero .big{font-family:var(--round); font-size:34px; font-weight:800; color:var(--good);}
+.summary-hero .big.neg{color:var(--danger);}
+.upg-card{display:flex; align-items:center; gap:12px;}
+.upg-card .prod-ic{background:#FFF1DD;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* =========================================================
+   MÓJ SKLEPIK — dane i stan gry
+   ========================================================= */
+const STORAGE_KEY = 'shopSimState_v1';
+
+const THEMES = [
+  {id:'slodycze', name:'Sklep ze Słodyczami', em:'🍬', perishable:false, products:[
+    {id:'lizak', name:'Lizak', em:'🍭', wholesale:1, fairPrice:2},
+    {id:'czekolada', name:'Czekolada', em:'🍫', wholesale:3, fairPrice:5},
+    {id:'guma', name:'Guma balonowa', em:'🟣', wholesale:1, fairPrice:2},
+    {id:'ciastko', name:'Ciastko', em:'🍪', wholesale:2, fairPrice:4},
+    {id:'lody', name:'Lody', em:'🍦', wholesale:3, fairPrice:6},
+  ]},
+  {id:'zabawki', name:'Sklep z Zabawkami', em:'🧸', perishable:false, products:[
+    {id:'plusz', name:'Pluszak', em:'🧸', wholesale:15, fairPrice:25},
+    {id:'auto', name:'Autko', em:'🚗', wholesale:8, fairPrice:15},
+    {id:'pilka', name:'Piłka', em:'⚽', wholesale:10, fairPrice:18},
+    {id:'klocki', name:'Klocki', em:'🧩', wholesale:20, fairPrice:35},
+    {id:'balon', name:'Balony (paczka)', em:'🎈', wholesale:2, fairPrice:5},
+  ]},
+  {id:'owoce', name:'Stragan z Owocami', em:'🍎', perishable:true, products:[
+    {id:'jablko', name:'Jabłka (kg)', em:'🍎', wholesale:1, fairPrice:2},
+    {id:'banan', name:'Banany (kg)', em:'🍌', wholesale:1, fairPrice:2},
+    {id:'truskawki', name:'Truskawki (pudełko)', em:'🍓', wholesale:4, fairPrice:7},
+    {id:'arbuz', name:'Arbuz', em:'🍉', wholesale:6, fairPrice:10},
+    {id:'winogrona', name:'Winogrona (kg)', em:'🍇', wholesale:3, fairPrice:6},
+  ]},
+  {id:'szkolny', name:'Sklep Szkolny', em:'📚', perishable:false, products:[
+    {id:'zeszyt', name:'Zeszyt', em:'📓', wholesale:2, fairPrice:4},
+    {id:'dlugopis', name:'Długopis', em:'🖊️', wholesale:1, fairPrice:2},
+    {id:'kredki', name:'Kredki', em:'🖍️', wholesale:5, fairPrice:9},
+    {id:'plecak', name:'Plecak', em:'🎒', wholesale:25, fairPrice:45},
+    {id:'linijka', name:'Linijka', em:'📏', wholesale:1, fairPrice:2},
+  ]},
+  {id:'zoo', name:'Sklep Zoologiczny', em:'🐾', perishable:false, products:[
+    {id:'karma', name:'Karma dla psa', em:'🦴', wholesale:8, fairPrice:14},
+    {id:'zabawkakota', name:'Zabawka dla kota', em:'🐭', wholesale:4, fairPrice:8},
+    {id:'smycz', name:'Smycz', em:'🦮', wholesale:6, fairPrice:12},
+    {id:'rybka', name:'Rybka do akwarium', em:'🐠', wholesale:3, fairPrice:6},
+    {id:'klatka', name:'Klatka dla chomika', em:'🐹', wholesale:12, fairPrice:22},
+  ]},
+];
+
+const CUSTOMER_EMOJIS = ['🧒','👧','👦','👩','👨','👵','👴','🧑','👱','🧔'];
+
+const UPGRADES = [
+  {id:'witryna', name:'Ładna witryna', em:'🪟', cost:150, desc:'Więcej klientów zagląda do sklepu (+2 klientów dziennie).', customerBoost:2},
+  {id:'reklama', name:'Reklama w okolicy', em:'📣', cost:400, desc:'Jeszcze więcej klientów o Tobie słyszy (+3 klientów dziennie).', customerBoost:3},
+  {id:'szyld', name:'Neonowy szyld', em:'✨', cost:900, desc:'Sklep widać z daleka! (+4 klientów dziennie).', customerBoost:4},
+  {id:'magazyn', name:'Większy magazyn', em:'📦', cost:300, desc:'Możesz trzymać więcej towaru na półkach (+15 miejsca).', capacityBoost:15},
+  {id:'magazyn2', name:'Ogromny magazyn', em:'🏭', cost:800, desc:'Jeszcze więcej miejsca na towar (+25 miejsca).', capacityBoost:25},
+];
+
+const BADGES = [
+  {id:'firstsale', title:'🎉 Pierwsza sprzedaż', test:s=>s.totalRevenue>0},
+  {id:'profit100', title:'💰 100 zł zysku', test:s=>s.totalProfit>=100},
+  {id:'profit500', title:'💵 500 zł zysku', test:s=>s.totalProfit>=500},
+  {id:'profit2000', title:'🏆 2000 zł zysku', test:s=>s.totalProfit>=2000},
+  {id:'week', title:'📅 Tydzień prowadzenia sklepu', test:s=>s.day>=8},
+  {id:'nowaste3', title:'🌟 3 dni bez zmarnowanego towaru', test:s=>s.noWasteStreak>=3},
+  {id:'perfectday', title:'😃 Dzień, w którym wszyscy klienci byli zadowoleni', test:s=>s.perfectDay},
+  {id:'allupgrades', title:'👑 Wszystkie ulepszenia sklepu', test:s=>UPGRADES.every(u=>s.upgrades.includes(u.id))},
+];
+
+let AppState = null;
+let currentTab = 'sklep';
+let flashMsg = null; let flashTimer = null;
+let dayLog = null; // wynik ostatniego dnia do pokazania
+let pendingBuy = {}; // ile dokupić dziś (per produkt), zerowane po zakupie
+let pendingPrices = {}; // robocze ceny w edycji
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function findTheme(id){ return THEMES.find(t=>t.id===id); }
+function findUpgrade(id){ return UPGRADES.find(u=>u.id===id); }
+function flash(text, type){
+  flashMsg = {text, type: type||'info'};
+  clearTimeout(flashTimer);
+  render();
+  flashTimer = setTimeout(()=>{ flashMsg=null; render(); }, 2600);
+}
+function fmt(n){ return Math.round(n*100)/100 + ' zł'; }
+
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return null;
+  try{ return JSON.parse(raw); }catch(e){ return null; }
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(AppState)); }
+
+function capacity(){
+  let cap = 25;
+  AppState.upgrades.forEach(id=>{ const u=findUpgrade(id); if(u.capacityBoost) cap+=u.capacityBoost; });
+  return cap;
+}
+function customerBoost(){
+  let b = 0;
+  AppState.upgrades.forEach(id=>{ const u=findUpgrade(id); if(u.customerBoost) b+=u.customerBoost; });
+  return b;
+}
+
+/* ---------------- start gry ---------------- */
+function startShop(shopName, themeId){
+  shopName = (shopName||'').trim();
+  if(!shopName) return flash('Nadaj nazwę swojemu sklepowi!','err');
+  const theme = findTheme(themeId);
+  const stock = {}; const prices = {};
+  theme.products.forEach(p=>{ stock[p.id]=0; prices[p.id]=p.fairPrice; });
+  AppState = {
+    shopName, themeId, day:1, cash:100,
+    stock, prices,
+    upgrades: [],
+    totalRevenue:0, totalProfit:0, totalCost:0,
+    badges: [], history: [],
+    noWasteStreak:0, perfectDay:false,
+    bestDayProfit:0
+  };
+  pendingBuy = {}; theme.products.forEach(p=>pendingBuy[p.id]=0);
+  pendingPrices = {...prices};
+  saveState();
+  currentTab='zaopatrzenie';
+  render();
+}
+function restart(){
+  localStorage.removeItem(STORAGE_KEY);
+  AppState = null; currentTab='sklep'; dayLog=null;
+  render();
+}
+
+/* ---------------- zaopatrzenie i ceny ---------------- */
+function changeBuyQty(prodId, delta){
+  const theme = findTheme(AppState.themeId);
+  const p = theme.products.find(pp=>pp.id===prodId);
+  const cur = pendingBuy[prodId]||0;
+  const newQty = Math.max(0, cur+delta);
+  // nie pozwól przekroczyć pojemności magazynu ani budżetu w rażący sposób (miękkie ograniczenie na +99)
+  const currentStock = AppState.stock[prodId]||0;
+  if(currentStock + newQty > capacity()) return flash(`Za mało miejsca w sklepie na tyle towaru! (limit: ${capacity()})`,'err');
+  pendingBuy[prodId] = newQty;
+  render();
+}
+function changePrice(prodId, delta){
+  const cur = pendingPrices[prodId];
+  const next = Math.max(1, cur+delta);
+  pendingPrices[prodId] = next;
+  render();
+}
+function totalPendingCost(){
+  const theme = findTheme(AppState.themeId);
+  return theme.products.reduce((s,p)=> s + (pendingBuy[p.id]||0)*p.wholesale, 0);
+}
+function confirmSupply(){
+  const theme = findTheme(AppState.themeId);
+  const cost = totalPendingCost();
+  if(cost > AppState.cash) return flash('Za mało pieniędzy na taki zakup!','err');
+  theme.products.forEach(p=>{
+    const qty = pendingBuy[p.id]||0;
+    if(qty>0){ AppState.stock[p.id] = (AppState.stock[p.id]||0) + qty; }
+    AppState.prices[p.id] = pendingPrices[p.id];
+  });
+  AppState.cash -= cost;
+  AppState.totalCost += cost;
+  theme.products.forEach(p=>pendingBuy[p.id]=0);
+  saveState();
+  flash(cost>0 ? `Kupiono towar za ${fmt(cost)}!` : 'Zapisano ceny.', 'ok');
+  render();
+}
+
+/* ---------------- symulacja dnia ---------------- */
+function openShopForDay(){
+  const theme = findTheme(AppState.themeId);
+  const totalStock = theme.products.reduce((s,p)=>s+(AppState.stock[p.id]||0),0);
+  if(totalStock===0) return flash('Najpierw dokup jakiś towar w zakładce Zaopatrzenie!','err');
+
+  const numCustomers = 5 + Math.floor(Math.random()*6) + customerBoost();
+  let revenue = 0, happy = 0, sad = 0;
+  const log = [];
+
+  for(let i=0;i<numCustomers;i++){
+    const product = theme.products[Math.floor(Math.random()*theme.products.length)];
+    const qtyWanted = 1 + Math.floor(Math.random()*2);
+    const willingness = product.fairPrice * (0.7 + Math.random()*0.6);
+    const price = AppState.prices[product.id];
+    const stock = AppState.stock[product.id]||0;
+    const cust = CUSTOMER_EMOJIS[Math.floor(Math.random()*CUSTOMER_EMOJIS.length)];
+
+    if(stock<=0){
+      log.push({em:cust, text:`chciał/a kupić ${product.em} ${product.name}, ale zabrakło na półce...`, sad:true});
+      sad++;
+    } else if(price <= willingness){
+      const qty = Math.min(qtyWanted, stock);
+      revenue += qty*price;
+      AppState.stock[product.id] -= qty;
+      log.push({em:cust, text:`kupił/a ${qty}x ${product.em} ${product.name} za ${qty*price} zł!`, sad:false});
+      happy++;
+    } else {
+      log.push({em:cust, text:`zobaczył/a cenę ${product.name} (${price} zł) i uznał/a, że to za dużo.`, sad:true});
+      sad++;
+    }
+  }
+
+  // psucie towaru (tylko motywy "perishable")
+  let wasted = 0;
+  if(theme.perishable){
+    theme.products.forEach(p=>{
+      const left = AppState.stock[p.id]||0;
+      if(left>0){
+        const spoil = Math.floor(left*0.15);
+        if(spoil>0){ AppState.stock[p.id] -= spoil; wasted += spoil; log.push({em:'🗑️', text:`${spoil}x ${p.name} się zepsuło i trzeba je wyrzucić.`, sad:true}); }
+      }
+    });
+  }
+
+  AppState.cash += revenue;
+  AppState.totalRevenue += revenue;
+  AppState.totalProfit = AppState.totalRevenue - AppState.totalCost;
+  if(revenue > AppState.bestDayProfit) AppState.bestDayProfit = revenue;
+  AppState.perfectDay = (sad===0);
+  AppState.noWasteStreak = wasted===0 ? AppState.noWasteStreak+1 : 0;
+
+  AppState.history.unshift({day:AppState.day, revenue, happy, sad, wasted});
+  if(AppState.history.length>60) AppState.history.pop();
+
+  BADGES.forEach(b=>{ if(!AppState.badges.includes(b.id) && b.test(AppState)) AppState.badges.push(b.id); });
+
+  dayLog = {day:AppState.day, log, revenue, happy, sad, wasted};
+  AppState.day += 1;
+  saveState();
+  currentTab = 'sklep';
+  render();
+}
+
+/* ---------------- ulepszenia ---------------- */
+function buyUpgrade(id){
+  const u = findUpgrade(id);
+  if(AppState.upgrades.includes(id)) return;
+  if(AppState.cash < u.cost) return flash(`Za mało pieniędzy (potrzeba ${fmt(u.cost)}).`,'err');
+  AppState.cash -= u.cost;
+  AppState.upgrades.push(id);
+  BADGES.forEach(b=>{ if(!AppState.badges.includes(b.id) && b.test(AppState)) AppState.badges.push(b.id); });
+  saveState();
+  flash(`Kupiono: ${u.name}!`,'ok');
+  render();
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+function render(){
+  const app = document.getElementById('app');
+  if(!AppState){
+    app.innerHTML = renderSetup();
+    attachSetupEvents();
+    return;
+  }
+  app.innerHTML = renderMain();
+  attachMainEvents();
+}
+
+let setupTheme = THEMES[0].id;
+function renderSetup(){
+  const grid = THEMES.map(t=>`
+    <button class="theme-opt ${setupTheme===t.id?'on':''}" data-theme="${t.id}">
+      <div class="em">${t.em}</div><div class="nm">${t.name}</div>
+    </button>
+  `).join('');
+  return `
+  <div class="setup-screen">
+    <div class="setup-logo">🏪</div>
+    <h1 style="text-align:center;font-size:26px;margin-bottom:6px;">Mój Sklepik</h1>
+    <p class="muted" style="text-align:center;margin-bottom:16px;font-size:14px;">Kup towar taniej, sprzedaj drożej — różnica to Twój zysk! Zacznij z kwotą 100 zł.</p>
+    <div class="card">
+      <label class="field-label">Jak nazwiesz swój sklep?</label>
+      <input type="text" id="shopNameInput" placeholder="np. U Tosi">
+      <label class="field-label">Wybierz rodzaj sklepu</label>
+      <div class="theme-grid">${grid}</div>
+      <button class="btn btn-primary big-cta" id="startShopBtn" style="margin-top:16px;">Otwórz sklep!</button>
+    </div>
+    <p class="muted" style="text-align:center;">To osobna gra — zapisuje się na tym urządzeniu.</p>
+  </div>`;
+}
+function attachSetupEvents(){
+  document.querySelectorAll('[data-theme]').forEach(btn=>{
+    btn.onclick = ()=>{ setupTheme = btn.dataset.theme; render(); };
+  });
+  document.getElementById('startShopBtn').onclick = ()=>{
+    startShop(document.getElementById('shopNameInput').value, setupTheme);
+  };
+}
+
+function renderMain(){
+  const theme = findTheme(AppState.themeId);
+  return `
+  ${flashMsg ? `<div class="flash ${flashMsg.type==='err'?'err':flashMsg.type==='ok'?'ok':''}">${flashMsg.text}</div>` : ''}
+  <div class="topbar">
+    <div class="topbar-row">
+      <div>
+        <div class="fam-name">${theme.em} ${AppState.shopName}</div>
+        <div class="fam-sub">${theme.name}</div>
+      </div>
+      <div class="day-pill">Dzień ${AppState.day}</div>
+    </div>
+    <div class="cash-row">
+      <div class="lbl">W kasie</div>
+      <div class="val tabular">${fmt(AppState.cash)}</div>
+    </div>
+  </div>
+  <div class="wrap">${renderTabContent()}</div>
+  <div class="bottomnav">
+    ${navBtn('sklep','🏪','Sklep')}
+    ${navBtn('zaopatrzenie','📦','Zaopatrzenie')}
+    ${navBtn('rozwoj','🏆','Nagrody')}
+    ${navBtn('pomoc','❓','Pomoc')}
+  </div>`;
+}
+function navBtn(id,ic,label){
+  return `<button class="navbtn ${currentTab===id?'on':''}" data-tab="${id}"><span class="ic">${ic}</span>${label}</button>`;
+}
+function renderTabContent(){
+  switch(currentTab){
+    case 'sklep': return renderSklep();
+    case 'zaopatrzenie': return renderZaopatrzenie();
+    case 'rozwoj': return renderRozwoj();
+    case 'pomoc': return renderPomoc();
+    default: return '';
+  }
+}
+
+/* ---------- SKLEP (dashboard) ---------- */
+function renderSklep(){
+  const theme = findTheme(AppState.themeId);
+  const totalStock = theme.products.reduce((s,p)=>s+(AppState.stock[p.id]||0),0);
+  let summary = '';
+  if(dayLog){
+    summary = `
+    <div class="section-title">📋 Wyniki dnia ${dayLog.day}</div>
+    <div class="card">
+      <div class="summary-hero">
+        <div class="muted">Utarg dnia</div>
+        <div class="big">${fmt(dayLog.revenue)}</div>
+        <div class="muted">😃 ${dayLog.happy} zadowolonych · 😕 ${dayLog.sad} niezadowolonych${dayLog.wasted?` · 🗑️ ${dayLog.wasted} zmarnowane`:''}</div>
+      </div>
+      <hr style="border:none;border-top:2px solid var(--border);margin:10px 0;">
+      ${dayLog.log.map(l=>`<div class="log-item">${l.em} Klient ${l.text}</div>`).join('')}
+    </div>`;
+  }
+  return `
+  <div class="kid-box">
+    <h3>👋 Witaj w sklepie ${AppState.shopName}!</h3>
+    <p>Na półkach masz <b>${totalStock}</b> sztuk towaru. Gdy będziesz gotowy/a, otwórz sklep na dzisiejszy dzień!</p>
+  </div>
+  <button class="btn btn-accent big-cta" id="openDayBtn">🔔 Otwórz sklep na dzień ${AppState.day}</button>
+  ${summary}
+  `;
+}
+
+/* ---------- ZAOPATRZENIE (zakupy + ceny) ---------- */
+function priceFace(fairPrice, price){
+  if(price < fairPrice*0.6) return {ic:'🤑', txt:'Za tanio — tracisz pieniądze!'};
+  if(price <= fairPrice*1.1) return {ic:'😃', txt:'Świetna cena!'};
+  if(price <= fairPrice*1.4) return {ic:'😐', txt:'Trochę drogo...'};
+  return {ic:'😞', txt:'Bardzo drogo — klienci mogą uciekać!'};
+}
+function renderZaopatrzenie(){
+  const theme = findTheme(AppState.themeId);
+  const cap = capacity();
+  const cost = totalPendingCost();
+  return `
+  <div class="kid-box">
+    <h3>📦 Zaopatrzenie i ceny</h3>
+    <p>Kup towar u hurtownika (im więcej kupujesz, tym więcej możesz sprzedać) i ustaw ceny — buźka podpowie, czy cena jest uczciwa!</p>
+    <p class="muted">Miejsce na półkach: <b>${cap}</b> sztuk na produkt.</p>
+  </div>
+  <div class="card">
+    ${theme.products.map(p=>{
+      const stock = AppState.stock[p.id]||0;
+      const buyQty = pendingBuy[p.id]||0;
+      const price = pendingPrices[p.id];
+      const face = priceFace(p.fairPrice, price);
+      return `
+      <div class="prod-card" style="flex-wrap:wrap;">
+        <div class="prod-ic">${p.em}</div>
+        <div style="flex:1;min-width:120px;">
+          <div class="prod-name">${p.name}</div>
+          <div class="prod-sub">Na półce: ${stock} szt. · Hurt: ${p.wholesale} zł/szt.</div>
+        </div>
+        <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px;flex-wrap:wrap;">
+          <div>
+            <div class="prod-sub" style="text-align:center;margin-bottom:3px;">Dokup ile?</div>
+            <div class="stepper">
+              <button class="step-btn" data-buyminus="${p.id}">−</button>
+              <div class="step-val">${buyQty}</div>
+              <button class="step-btn" data-buyplus="${p.id}">+</button>
+            </div>
+          </div>
+          <div>
+            <div class="prod-sub" style="text-align:center;margin-bottom:3px;">Cena sprzedaży</div>
+            <div class="stepper">
+              <button class="step-btn" data-priceminus="${p.id}">−</button>
+              <div class="step-val">${price} zł</div>
+              <button class="step-btn" data-priceplus="${p.id}">+</button>
+            </div>
+          </div>
+          <div style="text-align:center;">
+            <div class="face">${face.ic}</div>
+            <div class="prod-sub" style="max-width:80px;">${face.txt}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="card" style="text-align:center;">
+    <p class="muted">Koszt zakupów: <b class="tabular">${fmt(cost)}</b> (masz ${fmt(AppState.cash)})</p>
+    <button class="btn btn-primary" id="confirmSupplyBtn" style="margin-top:8px;">Zatwierdź zakupy i ceny</button>
+  </div>
+  `;
+}
+
+/* ---------- NAGRODY / ROZWÓJ ---------- */
+function renderRozwoj(){
+  return `
+  <div class="section-title">🏆 Odznaki (${AppState.badges.length}/${BADGES.length})</div>
+  <div class="card">
+    <div class="badges">
+      ${AppState.badges.length ? BADGES.filter(b=>AppState.badges.includes(b.id)).map(b=>`<span class="badge">${b.title}</span>`).join('') : '<p class="muted">Jeszcze żadnych — sprzedawaj dalej!</p>'}
+    </div>
+  </div>
+
+  <div class="section-title">🛠️ Ulepszenia sklepu</div>
+  ${UPGRADES.map(u=>`
+    <div class="card upg-card">
+      <div class="prod-ic">${u.em}</div>
+      <div style="flex:1;">
+        <div class="prod-name">${u.name}</div>
+        <div class="prod-sub">${u.desc}</div>
+      </div>
+      ${AppState.upgrades.includes(u.id)
+        ? `<span class="badge">Kupione ✓</span>`
+        : `<button class="btn btn-accent btn-sm" data-upgrade="${u.id}">${fmt(u.cost)}</button>`}
+    </div>
+  `).join('')}
+
+  <div class="section-title">📊 Statystyki</div>
+  <div class="card">
+    <p class="muted">Łączny utarg: <b class="tabular">${fmt(AppState.totalRevenue)}</b></p>
+    <p class="muted">Łączny zysk: <b class="tabular">${fmt(AppState.totalProfit)}</b></p>
+    <p class="muted">Najlepszy dzień: <b class="tabular">${fmt(AppState.bestDayProfit)}</b></p>
+  </div>
+
+  <div class="section-title">🔄 Reset</div>
+  <div class="card">
+    <p class="muted">To zamknie ten sklep na zawsze i pozwoli zacząć od nowa.</p>
+    <button class="btn btn-danger" style="margin-top:8px;" id="resetShopBtn">Zamknij sklep i zacznij od nowa</button>
+  </div>
+  `;
+}
+
+/* ---------- POMOC ---------- */
+function renderPomoc(){
+  return `
+  <div class="kid-box">
+    <h3>👋 Jak grać w Mój Sklepik?</h3>
+    <p>Prowadzisz swój własny sklep! Codziennie robisz to samo, w tej kolejności:</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:15px;">1️⃣ 📦 Zaopatrzenie</h3>
+    <p class="muted" style="margin-top:4px;">Kup towar u hurtownika (taniej) i ustaw cenę sprzedaży (drożej). Buźka pokaże, czy cena jest uczciwa.</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:15px;">2️⃣ 🏪 Otwórz sklep</h3>
+    <p class="muted" style="margin-top:4px;">Klienci przychodzą sami! Jeśli cena im pasuje i masz towar — kupują. Zobaczysz, ile zarobiłeś/aś.</p>
+  </div>
+  <div class="card">
+    <h3 style="font-size:15px;">3️⃣ 🏆 Rozwijaj sklep</h3>
+    <p class="muted" style="margin-top:4px;">Za zarobione pieniądze kup ulepszenia — przyciągają więcej klientów albo dają więcej miejsca na towar.</p>
+  </div>
+  <div class="kid-box">
+    <h3>💡 Najważniejsza zasada</h3>
+    <p>Kupuj taniej, sprzedawaj drożej — różnica to Twój <b>zysk</b>! Ale uważaj: za wysoka cena odstrasza klientów, a za niska — nie zarobisz.</p>
+  </div>
+  `;
+}
+
+/* =========================================================
+   EVENT WIRING
+   ========================================================= */
+function attachMainEvents(){
+  document.querySelectorAll('.navbtn').forEach(b=>{
+    b.onclick = ()=>{ currentTab = b.dataset.tab; render(); };
+  });
+
+  const openDayBtn = document.getElementById('openDayBtn');
+  if(openDayBtn) openDayBtn.onclick = ()=>{ openDayBtn.disabled=true; openShopForDay(); };
+
+  document.querySelectorAll('[data-buyplus]').forEach(btn=>{
+    btn.onclick = ()=>{ changeBuyQty(btn.dataset.buyplus, 1); };
+  });
+  document.querySelectorAll('[data-buyminus]').forEach(btn=>{
+    btn.onclick = ()=>{ changeBuyQty(btn.dataset.buyminus, -1); };
+  });
+  document.querySelectorAll('[data-priceplus]').forEach(btn=>{
+    btn.onclick = ()=>{ changePrice(btn.dataset.priceplus, 1); };
+  });
+  document.querySelectorAll('[data-priceminus]').forEach(btn=>{
+    btn.onclick = ()=>{ changePrice(btn.dataset.priceminus, -1); };
+  });
+  const confirmSupplyBtn = document.getElementById('confirmSupplyBtn');
+  if(confirmSupplyBtn) confirmSupplyBtn.onclick = ()=>{ confirmSupply(); };
+
+  document.querySelectorAll('[data-upgrade]').forEach(btn=>{
+    btn.onclick = ()=>{ buyUpgrade(btn.dataset.upgrade); };
+  });
+
+  const resetShopBtn = document.getElementById('resetShopBtn');
+  if(resetShopBtn) resetShopBtn.onclick = ()=>{
+    if(confirm('Na pewno zamknąć sklep i usunąć wszystkie dane?')) restart();
+  };
+}
+
+/* ---------------- init ---------------- */
+(function init(){
+  AppState = loadState();
+  if(AppState){
+    const theme = findTheme(AppState.themeId);
+    pendingBuy = {}; theme.products.forEach(p=>pendingBuy[p.id]=0);
+    pendingPrices = {...AppState.prices};
+  }
+  render();
+})();
+</script>
+
+</body>
+</html>
