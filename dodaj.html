@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dodaj grę — Minigry Rodzinne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root{
+    --bg:#EEF1F2; --surface:#FFFFFF; --ink:#10262B;
+    --primary:#0F3D3E; --primary-light:#155C56;
+    --accent:#E8A33D; --accent-2:#5B2A86;
+    --border:#DDE3E2; --muted:#5B6E6C;
+    --danger:#C0392B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--bg);
+    font-family:'Inter',system-ui,sans-serif; color:var(--ink);
+    display:flex; flex-direction:column; align-items:center; padding:24px 20px 80px;
+  }
+  .wrap{ width:100%; max-width:760px; }
+  .back{ font-size:13px; color:var(--muted); text-decoration:none; display:inline-block; margin-bottom:16px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.14em; text-transform:uppercase;
+    font-size:12px; color:var(--primary); background:rgba(15,61,62,.08);
+    padding:6px 14px; border-radius:999px; margin-bottom:18px; font-weight:600; display:inline-block;
+  }
+  h1{ font-family:'Fraunces',serif; font-weight:700; font-size:clamp(26px,5vw,36px); margin:0 0 8px; }
+  p.sub{ color:var(--muted); margin:0 0 30px; line-height:1.5; }
+
+  .gate{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:30px; text-align:center; color:var(--muted);
+  }
+
+  form{ display:flex; flex-direction:column; gap:18px; }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  label{ font-size:13px; font-weight:600; color:var(--primary); }
+  input[type=text], textarea, select{
+    font-family:'Inter',sans-serif; font-size:14px; padding:11px 14px;
+    border-radius:10px; border:1px solid var(--border); outline:none; background:var(--surface);
+    color:var(--ink); width:100%;
+  }
+  input[type=text]:focus, textarea:focus, select:focus{ border-color:var(--primary); }
+  textarea.desc{ resize:vertical; min-height:70px; font-family:'Inter',sans-serif; }
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  #editor{
+    height:420px; border:1px solid var(--border); border-radius:10px; overflow:hidden;
+  }
+  .editor-meta{
+    display:flex; justify-content:space-between; font-size:12px; color:var(--muted);
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .editor-meta.over{ color:var(--danger); font-weight:700; }
+
+  .icon-picker{ display:flex; gap:8px; flex-wrap:wrap; }
+  .icon-picker button{
+    font-size:20px; width:44px; height:44px; border-radius:10px; border:1px solid var(--border);
+    background:var(--surface); cursor:pointer;
+  }
+  .icon-picker button.selected{ border-color:var(--primary); background:rgba(15,61,62,.08); }
+
+  .submit-btn{
+    font-family:'Inter',sans-serif; font-size:15px; font-weight:700; color:#fff;
+    background:var(--primary); border:none; border-radius:999px; padding:14px 22px;
+    cursor:pointer; transition:.15s ease;
+  }
+  .submit-btn:hover{ background:var(--primary-light); }
+  .submit-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  .msg{ font-size:13.5px; padding:12px 14px; border-radius:10px; display:none; }
+  .msg.show{ display:block; }
+  .msg.ok{ background:rgba(95,203,122,.15); color:#1f7a3d; }
+  .msg.err{ background:rgba(192,57,43,.1); color:var(--danger); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">&larr; Wróć do menu</a>
+  <div class="eyebrow">Kreator gier</div>
+  <h1>Dodaj swoją grę</h1>
+  <p class="sub">Wgraj własny kod HTML/JS (do 10 000 linii). Po publikacji gra pojawi się w wybranej kategorii dla wszystkich.</p>
+
+  <div id="gate" class="gate">Sprawdzam logowanie…</div>
+
+  <form id="gameForm" style="display:none;">
+    <div class="field">
+      <label for="title">Tytuł gry</label>
+      <input type="text" id="title" required maxlength="60" placeholder="np. Kosmiczny Sklepik">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="category">Kategoria</label>
+        <select id="category" required>
+          <option value="bank">Bank</option>
+          <option value="biznes">Biznes</option>
+          <option value="sklep">Sklep</option>
+          <option value="literki">Literki (dla młodszych)</option>
+          <option value="clicker">Clicker</option>
+          <option value="inne">Inne</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Ikonka</label>
+        <div class="icon-picker" id="iconPicker">
+          <button type="button" data-icon="🎮" class="selected">🎮</button>
+          <button type="button" data-icon="🏦">🏦</button>
+          <button type="button" data-icon="🏢">🏢</button>
+          <button type="button" data-icon="🛍️">🛍️</button>
+          <button type="button" data-icon="🔤">🔤</button>
+          <button type="button" data-icon="💰">💰</button>
+          <button type="button" data-icon="🧩">🧩</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="description">Krótki opis (widoczny na karcie w menu)</label>
+      <textarea class="desc" id="description" maxlength="180" required placeholder="W dwóch zdaniach — o co chodzi w grze?"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Kod gry (HTML, CSS, JS w jednym pliku)</label>
+      <div id="editor"></div>
+      <div class="editor-meta" id="editorMeta">0 / 10000 linii</div>
+    </div>
+
+    <div id="formMsg" class="msg"></div>
+    <button type="submit" class="submit-btn" id="submitBtn">Opublikuj grę</button>
+  </form>
+</div>
+
+<!-- Monaco Editor (edytor kodu jak w VS Code) -->
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
+<script>
+  const SUPABASE_URL = "https://oesvwvqkzuyxawowgffx.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_l1IZEgjZq3s0uGrKMjyrSg_-OG1xUTL";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const MAX_LINES = 10000;
+  let currentUser = null;
+  let monacoEditor = null;
+  let selectedIcon = '🎮';
+
+  const gate = document.getElementById('gate');
+  const gameForm = document.getElementById('gameForm');
+  const editorMeta = document.getElementById('editorMeta');
+  const formMsg = document.getElementById('formMsg');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // --- Sprawdzenie logowania ---
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session){
+      currentUser = session.user;
+      gate.style.display = 'none';
+      gameForm.style.display = 'flex';
+      initEditor();
+    } else {
+      gate.innerHTML = '🔒 Musisz być zalogowany, żeby dodać grę. <a href="index.html">Zaloguj się na stronie głównej</a>, a potem wróć tutaj.';
+    }
+  });
+
+  // --- Wybór ikonki ---
+  document.getElementById('iconPicker').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    document.querySelectorAll('#iconPicker button').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedIcon = btn.dataset.icon;
+  });
+
+  // --- Inicjalizacja edytora kodu ---
+  function initEditor(){
+    require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs' }});
+    require(['vs/editor/editor.main'], function () {
+      monacoEditor = monaco.editor.create(document.getElementById('editor'), {
+        value: '<!-- Wklej tutaj swój kod HTML/CSS/JS -->\n<!DOCTYPE html>\n<html>\n<head></head>\n<body>\n  \n</body>\n</html>',
+        language: 'html',
+        theme: 'vs',
+        automaticLayout: true,
+        minimap: { enabled: false },
+        fontSize: 13,
+        wordWrap: 'on'
+      });
+      monacoEditor.onDidChangeModelContent(updateLineCount);
+      updateLineCount();
+    });
+  }
+
+  function updateLineCount(){
+    const lines = monacoEditor.getModel().getLineCount();
+    editorMeta.textContent = `${lines} / ${MAX_LINES} linii`;
+    editorMeta.classList.toggle('over', lines > MAX_LINES);
+    submitBtn.disabled = lines > MAX_LINES;
+  }
+
+  // --- Wysyłka formularza ---
+  document.getElementById('gameForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formMsg.className = 'msg';
+
+    const code = monacoEditor.getValue();
+    const lineCount = monacoEditor.getModel().getLineCount();
+    if (lineCount > MAX_LINES){
+      showMsg('err', `Za dużo linii kodu (${lineCount}/${MAX_LINES}). Skróć kod i spróbuj ponownie.`);
+      return;
+    }
+    if (!code.trim()){
+      showMsg('err', 'Kod gry nie może być pusty.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Publikuję…';
+
+    const { error } = await sb.from('games').insert({
+      author_id: currentUser.id,
+      author_name: currentUser.user_metadata?.full_name || currentUser.email,
+      title: document.getElementById('title').value.trim(),
+      description: document.getElementById('description').value.trim(),
+      category: document.getElementById('category').value,
+      icon: selectedIcon,
+      code: code
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Opublikuj grę';
+
+    if (error){
+      showMsg('err', 'Błąd publikacji: ' + error.message);
+    } else {
+      showMsg('ok', '✅ Gra opublikowana! Wróć do menu, żeby ją zobaczyć.');
+      document.getElementById('gameForm').reset();
+      monacoEditor.setValue('');
+    }
+  });
+
+  function showMsg(type, text){
+    formMsg.className = `msg show ${type}`;
+    formMsg.textContent = text;
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
